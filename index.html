@@ -600,64 +600,65 @@ footer{background:var(--dark);padding:60px 24px 40px;text-align:center;border-to
 
 
 <!-- BUY / DEPOSIT MODAL -->
-<div id="buyModal" style="display:none;position:fixed;inset:0;z-index:999;background:rgba(6,16,31,0.92);backdrop-filter:blur(4px);overflow-y:auto;">
-  <div style="max-width:520px;margin:60px auto;padding:24px;">
-    <div style="background:var(--navy2);border:1px solid var(--gold);padding:36px;">
-      <!-- Step 1: Identity -->
-      <div id="step1">
-        <div style="font-family:var(--mono);font-size:0.68rem;letter-spacing:4px;color:var(--gold);text-transform:uppercase;margin-bottom:6px;">★ OFFICIAL DEPOSIT FORM</div>
-        <div style="font-family:'Anton',sans-serif;font-size:2rem;margin-bottom:4px;">BUY $CHUMP</div>
-        <div style="font-family:var(--mono);font-size:0.72rem;color:rgba(255,255,255,0.35);letter-spacing:2px;margin-bottom:28px;">SEND ETH · ADMIN VERIFIES · CHUMP CREDITED</div>
-        <div style="border-top:1px solid rgba(201,168,76,0.2);padding-top:24px;">
-          <label style="font-family:var(--mono);font-size:0.7rem;letter-spacing:3px;color:var(--gold);display:block;margin-bottom:8px;">YOUR NAME OR USERNAME</label>
-          <input id="dep-name" type="text" placeholder="e.g. PatriotWallet47" style="width:100%;padding:12px 14px;font-family:var(--mono);font-size:0.82rem;color:var(--white);background:rgba(255,255,255,0.04);border:1px solid rgba(201,168,76,0.35);outline:none;margin-bottom:18px;"/>
-          <label style="font-family:var(--mono);font-size:0.7rem;letter-spacing:3px;color:var(--gold);display:block;margin-bottom:8px;">YOUR WALLET ADDRESS</label>
-          <input id="dep-wallet" type="text" placeholder="0x…" style="width:100%;padding:12px 14px;font-family:var(--mono);font-size:0.72rem;color:var(--white);background:rgba(255,255,255,0.04);border:1px solid rgba(201,168,76,0.35);outline:none;margin-bottom:18px;"/>
-          <label style="font-family:var(--mono);font-size:0.7rem;letter-spacing:3px;color:var(--gold);display:block;margin-bottom:8px;">ETH AMOUNT TO SEND</label>
-          <input id="dep-eth" type="number" min="0.001" step="0.001" placeholder="0.05" style="width:100%;padding:12px 14px;font-family:var(--mono);font-size:0.82rem;color:var(--white);background:rgba(255,255,255,0.04);border:1px solid rgba(201,168,76,0.35);outline:none;margin-bottom:24px;"/>
-          <div id="step1-err" style="display:none;font-family:var(--mono);font-size:0.72rem;color:#e74c3c;margin-bottom:14px;letter-spacing:1px;"></div>
-          <button onclick="goStep2()" style="width:100%;padding:16px;background:var(--gold);color:var(--navy);font-family:var(--mono);font-weight:700;font-size:0.82rem;letter-spacing:3px;border:none;cursor:pointer;">CONTINUE →</button>
-          <button onclick="closeModal()" style="width:100%;padding:12px;background:transparent;color:rgba(255,255,255,0.35);font-family:var(--mono);font-size:0.72rem;letter-spacing:2px;border:none;cursor:pointer;margin-top:8px;">CANCEL</button>
-        </div>
-      </div>
+<div id="buyModal" style="display:none;position:fixed;inset:0;z-index:999;background:rgba(6,16,31,0.95);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:24px;">
+  <div style="width:100%;max-width:500px;background:var(--navy2);border:1px solid var(--gold);">
 
-      <!-- Step 2: Send ETH -->
-      <div id="step2" style="display:none;">
-        <div style="font-family:var(--mono);font-size:0.68rem;letter-spacing:4px;color:var(--gold);text-transform:uppercase;margin-bottom:6px;">★ STEP 2 OF 3</div>
-        <div style="font-family:'Anton',sans-serif;font-size:2rem;margin-bottom:20px;">SEND ETH</div>
-        <div style="background:rgba(201,168,76,0.07);border:1px solid rgba(201,168,76,0.3);padding:20px;margin-bottom:20px;">
-          <div style="font-family:var(--mono);font-size:0.68rem;letter-spacing:3px;color:var(--gold);margin-bottom:10px;">OFFICIAL STAKING WALLET</div>
-          <div id="modal-stake-addr" style="font-family:var(--mono);font-size:0.72rem;color:rgba(255,255,255,0.75);word-break:break-all;margin-bottom:12px;">0x960172ab0A5a6F6550E6A90200B5c19460592628</div>
-          <button onclick="copyModalAddr()" style="padding:10px 20px;background:var(--gold);color:var(--navy);font-family:var(--mono);font-weight:700;font-size:0.72rem;letter-spacing:2px;border:none;cursor:pointer;" id="copyAddrBtn">COPY ADDRESS</button>
-        </div>
-        <div style="font-family:var(--mono);font-size:0.78rem;color:rgba(255,255,255,0.6);line-height:1.7;margin-bottom:6px;">
-          Send exactly <strong id="modal-eth-amount" style="color:var(--gold);"></strong> ETH to the address above on the <strong style="color:var(--gold);">Robinhood Chain (BASE)</strong> network.
-        </div>
-        <div style="font-family:var(--mono);font-size:0.68rem;color:rgba(255,255,255,0.3);letter-spacing:1px;margin-bottom:24px;">After sending, paste your transaction hash below.</div>
-        <label style="font-family:var(--mono);font-size:0.7rem;letter-spacing:3px;color:var(--gold);display:block;margin-bottom:8px;">TRANSACTION HASH (TX ID)</label>
-        <input id="dep-txhash" type="text" placeholder="0x…" style="width:100%;padding:12px 14px;font-family:var(--mono);font-size:0.72rem;color:var(--white);background:rgba(255,255,255,0.04);border:1px solid rgba(201,168,76,0.35);outline:none;margin-bottom:6px;"/>
-        <div style="font-family:var(--mono);font-size:0.65rem;color:rgba(255,255,255,0.25);letter-spacing:1px;margin-bottom:20px;">Found in your wallet's transaction history after sending.</div>
-        <div id="step2-err" style="display:none;font-family:var(--mono);font-size:0.72rem;color:#e74c3c;margin-bottom:14px;letter-spacing:1px;"></div>
-        <button onclick="submitDeposit()" style="width:100%;padding:16px;background:var(--gold);color:var(--navy);font-family:var(--mono);font-weight:700;font-size:0.82rem;letter-spacing:3px;border:none;cursor:pointer;">SUBMIT DEPOSIT</button>
-        <button onclick="document.getElementById('step2').style.display='none';document.getElementById('step1').style.display='block';" style="width:100%;padding:12px;background:transparent;color:rgba(255,255,255,0.35);font-family:var(--mono);font-size:0.72rem;letter-spacing:2px;border:none;cursor:pointer;margin-top:8px;">← BACK</button>
+    <!-- PANEL A: Not connected — prompt to connect first -->
+    <div id="buy-panel-connect" style="display:none;padding:40px;text-align:center;">
+      <div style="font-size:2.2rem;margin-bottom:14px;">🔒</div>
+      <div style="font-family:var(--mono);font-size:0.68rem;letter-spacing:4px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">★ WALLET REQUIRED</div>
+      <div style="font-family:'Anton',sans-serif;font-size:2rem;margin-bottom:10px;">CONNECT FIRST</div>
+      <div style="font-family:var(--mono);font-size:0.75rem;color:rgba(255,255,255,0.4);letter-spacing:1px;line-height:1.8;margin-bottom:28px;">
+        You must connect your wallet before<br>purchasing $CHUMP tokens.
       </div>
-
-      <!-- Step 3: Confirmation -->
-      <div id="step3" style="display:none;text-align:center;">
-        <div style="font-size:3rem;margin-bottom:16px;">🦅</div>
-        <div style="font-family:'Anton',sans-serif;font-size:2rem;color:var(--gold);margin-bottom:10px;">DEPOSIT SUBMITTED!</div>
-        <div style="font-family:var(--mono);font-size:0.78rem;color:rgba(255,255,255,0.6);line-height:1.8;margin-bottom:24px;">
-          The administration has received your deposit request.<br>
-          Once our team verifies your transaction, your $CHUMP balance will be credited.<br><br>
-          <span style="color:var(--gold);">This is bigly fast. Usually 1–24 hours.</span>
-        </div>
-        <div style="background:rgba(201,168,76,0.07);border:1px solid rgba(201,168,76,0.2);padding:16px;margin-bottom:20px;text-align:left;">
-          <div style="font-family:var(--mono);font-size:0.65rem;letter-spacing:2px;color:rgba(255,255,255,0.3);margin-bottom:4px;">YOUR DEPOSIT ID</div>
-          <div id="dep-id-display" style="font-family:var(--mono);font-size:0.78rem;color:var(--gold);"></div>
-        </div>
-        <button onclick="closeModal();showDashboard();" style="width:100%;padding:16px;background:var(--gold);color:var(--navy);font-family:var(--mono);font-weight:700;font-size:0.82rem;letter-spacing:3px;border:none;cursor:pointer;">VIEW MY BALANCE</button>
-      </div>
+      <button onclick="buyConnectWallet()" style="width:100%;padding:16px;background:var(--gold);color:var(--navy);font-family:var(--mono);font-weight:700;font-size:0.82rem;letter-spacing:3px;border:none;cursor:pointer;margin-bottom:10px;">CONNECT WALLET →</button>
+      <button onclick="closeModal()" style="width:100%;padding:11px;background:transparent;color:rgba(255,255,255,0.25);font-family:var(--mono);font-size:0.68rem;letter-spacing:2px;border:1px solid rgba(255,255,255,0.1);cursor:pointer;">CANCEL</button>
     </div>
+
+    <!-- PANEL B: Connected — deposit instructions -->
+    <div id="buy-panel-deposit" style="display:none;padding:40px;">
+      <div style="font-family:var(--mono);font-size:0.68rem;letter-spacing:4px;color:var(--gold);text-transform:uppercase;margin-bottom:6px;">★ OFFICIAL DEPOSIT</div>
+      <div style="font-family:'Anton',sans-serif;font-size:2rem;margin-bottom:4px;">BUY $CHUMP</div>
+      <div style="font-family:var(--mono);font-size:0.7rem;color:rgba(255,255,255,0.3);letter-spacing:2px;margin-bottom:6px;">CONNECTED: <span id="buy-connected-addr" style="color:var(--gold);"></span></div>
+      <div style="border-top:1px solid rgba(201,168,76,0.2);margin:20px 0;"></div>
+
+      <!-- Staking address box -->
+      <div style="font-family:var(--mono);font-size:0.7rem;letter-spacing:3px;color:rgba(255,255,255,0.4);margin-bottom:8px;">STEP 1 — SEND ETH TO THE STAKING ADDRESS</div>
+      <div style="background:rgba(201,168,76,0.07);border:1px solid rgba(201,168,76,0.35);padding:18px;margin-bottom:6px;">
+        <div style="font-family:var(--mono);font-size:0.65rem;letter-spacing:3px;color:var(--gold);margin-bottom:8px;">OFFICIAL STAKING WALLET · BASE NETWORK</div>
+        <div style="font-family:var(--mono);font-size:0.73rem;color:var(--white);word-break:break-all;margin-bottom:14px;line-height:1.6;">0x960172ab0A5a6F6550E6A90200B5c19460592628</div>
+        <button id="copyAddrBtn" onclick="copyModalAddr()" style="width:100%;padding:12px;background:var(--gold);color:var(--navy);font-family:var(--mono);font-weight:700;font-size:0.75rem;letter-spacing:3px;border:none;cursor:pointer;">COPY ADDRESS</button>
+      </div>
+      <div style="font-family:var(--mono);font-size:0.65rem;color:rgba(255,255,255,0.22);letter-spacing:1px;margin-bottom:24px;">Network: Robinhood Chain (BASE) · Asset: ETH</div>
+
+      <!-- Fields -->
+      <div style="font-family:var(--mono);font-size:0.7rem;letter-spacing:3px;color:rgba(255,255,255,0.4);margin-bottom:8px;">STEP 2 — CONFIRM YOUR DEPOSIT DETAILS</div>
+      <label style="font-family:var(--mono);font-size:0.68rem;letter-spacing:2px;color:var(--gold);display:block;margin-bottom:6px;">ETH AMOUNT SENT</label>
+      <input id="dep-eth" type="number" min="0.001" step="0.001" placeholder="0.05" style="width:100%;padding:12px 14px;font-family:var(--mono);font-size:0.82rem;color:var(--white);background:rgba(255,255,255,0.04);border:1px solid rgba(201,168,76,0.35);outline:none;margin-bottom:14px;"/>
+      <label style="font-family:var(--mono);font-size:0.68rem;letter-spacing:2px;color:var(--gold);display:block;margin-bottom:6px;">TRANSACTION HASH (TX ID)</label>
+      <input id="dep-txhash" type="text" placeholder="0x… paste after sending" style="width:100%;padding:12px 14px;font-family:var(--mono);font-size:0.72rem;color:var(--white);background:rgba(255,255,255,0.04);border:1px solid rgba(201,168,76,0.35);outline:none;margin-bottom:6px;"/>
+      <div style="font-family:var(--mono);font-size:0.63rem;color:rgba(255,255,255,0.22);letter-spacing:1px;margin-bottom:20px;">Found in your wallet's transaction history after sending.</div>
+      <div id="dep-err" style="display:none;font-family:var(--mono);font-size:0.72rem;color:#e74c3c;margin-bottom:14px;letter-spacing:1px;"></div>
+      <button onclick="submitDeposit()" style="width:100%;padding:16px;background:var(--gold);color:var(--navy);font-family:var(--mono);font-weight:700;font-size:0.85rem;letter-spacing:3px;border:none;cursor:pointer;margin-bottom:10px;">SUBMIT DEPOSIT →</button>
+      <button onclick="closeModal()" style="width:100%;padding:11px;background:transparent;color:rgba(255,255,255,0.25);font-family:var(--mono);font-size:0.68rem;letter-spacing:2px;border:1px solid rgba(255,255,255,0.1);cursor:pointer;">CANCEL</button>
+    </div>
+
+    <!-- PANEL C: Submitted confirmation -->
+    <div id="buy-panel-done" style="display:none;padding:40px;text-align:center;">
+      <div style="font-size:3rem;margin-bottom:16px;">🦅</div>
+      <div style="font-family:'Anton',sans-serif;font-size:2rem;color:var(--gold);margin-bottom:10px;">DEPOSIT SUBMITTED!</div>
+      <div style="font-family:var(--mono);font-size:0.75rem;color:rgba(255,255,255,0.55);line-height:1.9;margin-bottom:24px;">
+        The administration has received your deposit.<br>
+        Once verified, your $CHUMP balance will be credited.<br>
+        <span style="color:var(--gold);">Usually 1–24 hours. Tremendously fast.</span>
+      </div>
+      <div style="background:rgba(201,168,76,0.07);border:1px solid rgba(201,168,76,0.2);padding:16px;margin-bottom:20px;text-align:left;">
+        <div style="font-family:var(--mono);font-size:0.63rem;letter-spacing:2px;color:rgba(255,255,255,0.3);margin-bottom:4px;">YOUR DEPOSIT ID</div>
+        <div id="dep-id-display" style="font-family:var(--mono);font-size:0.8rem;color:var(--gold);"></div>
+      </div>
+      <button onclick="closeModal();showDashboard();" style="width:100%;padding:16px;background:var(--gold);color:var(--navy);font-family:var(--mono);font-weight:700;font-size:0.82rem;letter-spacing:3px;border:none;cursor:pointer;">VIEW MY BALANCE</button>
+    </div>
+
   </div>
 </div>
 
@@ -860,71 +861,62 @@ function genId(){
 }
 
 /* ── BUY MODAL ── */
-function openBuyModal(){
-  const saved = getSavedWallet();
-  if(!saved){
-    // Must connect wallet first — open wallet modal with a prompt message
-    document.getElementById('wc-err').style.display='none';
-    const notice = document.getElementById('wc-connect-notice');
-    if(notice) notice.style.display='block';
-    openWalletModal();
-    // After connecting, re-open buy modal
-    window._pendingBuy = true;
-    return;
-  }
-  window._pendingBuy = false;
-  document.getElementById('buyModal').style.display='block';
+function showBuyPanel(panel){
+  ['buy-panel-connect','buy-panel-deposit','buy-panel-done'].forEach(function(id){
+    document.getElementById(id).style.display='none';
+  });
+  document.getElementById(panel).style.display='block';
+  var m=document.getElementById('buyModal');
+  m.style.removeProperty('display');
+  m.style.display='flex';
   document.body.style.overflow='hidden';
-  document.getElementById('dep-name').value='';
-  document.getElementById('dep-wallet').value=saved;
-  document.getElementById('dep-eth').value='';
-  document.getElementById('dep-txhash').value='';
-  document.getElementById('step1').style.display='block';
-  document.getElementById('step2').style.display='none';
-  document.getElementById('step3').style.display='none';
-  document.getElementById('step1-err').style.display='none';
-  document.getElementById('step2-err').style.display='none';
-}
-function closeModal(){
-  document.getElementById('buyModal').style.display='none';
-  document.body.style.overflow='';
 }
 
-function goStep2(){
-  const name=document.getElementById('dep-name').value.trim();
-  const wallet=document.getElementById('dep-wallet').value.trim();
-  const eth=parseFloat(document.getElementById('dep-eth').value);
-  const errEl=document.getElementById('step1-err');
-  errEl.style.display='none';
-  if(!name){errEl.textContent='★ Enter your name or username.';errEl.style.display='block';return;}
-  if(!wallet||!/^0x[0-9a-fA-F]{40}$/.test(wallet)){errEl.textContent='★ Enter a valid Ethereum wallet address (0x…).';errEl.style.display='block';return;}
-  if(!eth||eth<=0){errEl.textContent='★ Enter a valid ETH amount.';errEl.style.display='block';return;}
-  // save wallet if changed
-  saveWallet(wallet);updateNavPill(wallet);
-  document.getElementById('modal-eth-amount').textContent=eth+' ETH';
-  document.getElementById('step1').style.display='none';
-  document.getElementById('step2').style.display='block';
+function openBuyModal(){
+  const saved = getSavedWallet();
+  document.getElementById('dep-eth').value='';
+  document.getElementById('dep-txhash').value='';
+  document.getElementById('dep-err').style.display='none';
+  if(!saved){
+    showBuyPanel('buy-panel-connect');
+  } else {
+    document.getElementById('buy-connected-addr').textContent = saved.slice(0,6)+'…'+saved.slice(-4);
+    showBuyPanel('buy-panel-deposit');
+  }
+}
+
+function buyConnectWallet(){
+  // Close buy modal, open wallet modal, then re-open buy after connect
+  document.getElementById('buyModal').style.setProperty('display','none','important');
+  document.body.style.overflow='';
+  window._pendingBuy = true;
+  openWalletModal();
+}
+
+function closeModal(){
+  document.getElementById('buyModal').style.setProperty('display','none','important');
+  document.body.style.overflow='';
+  window._pendingBuy = false;
 }
 
 function submitDeposit(){
+  const eth=parseFloat(document.getElementById('dep-eth').value);
   const txhash=document.getElementById('dep-txhash').value.trim();
-  const errEl=document.getElementById('step2-err');
+  const errEl=document.getElementById('dep-err');
   errEl.style.display='none';
+  if(!eth||eth<=0){errEl.textContent='★ Enter the ETH amount you sent.';errEl.style.display='block';return;}
   if(!txhash||!/^0x[0-9a-fA-F]{40,}$/.test(txhash)){
     errEl.textContent='★ Enter a valid transaction hash (0x…).';errEl.style.display='block';return;
   }
-  const name=document.getElementById('dep-name').value.trim();
-  const wallet=document.getElementById('dep-wallet').value.trim();
-  const eth=parseFloat(document.getElementById('dep-eth').value);
+  const wallet=getSavedWallet();
   const deposit={
-    id:genId(),name,wallet,eth,txhash,
+    id:genId(),name:wallet,wallet,eth,txhash,
     status:'pending',chumpBalance:0,
     submittedAt:new Date().toISOString()
   };
   const all=getDeposits();all.push(deposit);saveDeposits(all);
   document.getElementById('dep-id-display').textContent=deposit.id;
-  document.getElementById('step2').style.display='none';
-  document.getElementById('step3').style.display='block';
+  showBuyPanel('buy-panel-done');
 }
 
 /* ── DASHBOARD ── */
