@@ -281,7 +281,7 @@ footer{background:var(--dark);padding:60px 24px 40px;text-align:center;border-to
 <body>
 
 <!-- WALLET CONNECT MODAL (shown on first visit) -->
-<div id="walletModal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(6,16,31,0.96);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:24px;">
+<div id="walletModal" style="position:fixed;inset:0;z-index:1000;background:rgba(6,16,31,0.96);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:24px;display:none;">
   <div style="width:100%;max-width:460px;background:var(--navy2);border:1px solid var(--gold);padding:40px;">
     <div style="text-align:center;margin-bottom:28px;">
       <div style="font-size:2.4rem;margin-bottom:12px;">🦅</div>
@@ -753,6 +753,9 @@ footer{background:var(--dark);padding:60px 24px 40px;text-align:center;border-to
 </footer>
 
 <script>
+/* Force wallet modal hidden on script parse — belt and suspenders */
+(function(){var m=document.getElementById('walletModal');if(m)m.style.setProperty('display','none','important');})();
+
 /* ── NAV ── */
 function toggleMenu(){document.getElementById('navMenu').classList.toggle('open');}
 function closeMenu(){document.getElementById('navMenu').classList.remove('open');}
@@ -798,7 +801,9 @@ function openWalletModal(){
   document.getElementById('wc-input').value = getSavedWallet();
   document.getElementById('wc-err').style.display='none';
   document.getElementById('wc-connect-notice').style.display='none';
-  document.getElementById('walletModal').style.display='flex';
+  var wm=document.getElementById('walletModal');
+  wm.style.removeProperty('display');
+  wm.style.display='flex';
   document.body.style.overflow='hidden';
   setTimeout(()=>document.getElementById('wc-input').focus(),100);
 }
@@ -812,7 +817,7 @@ function connectWallet(){
     err.style.display='block';return;
   }
   saveWallet(val);
-  document.getElementById('walletModal').style.display='none';
+  document.getElementById('walletModal').style.setProperty('display','none','important');
   document.body.style.overflow='';
   updateNavPill(val);
   if(window._pendingBuy){ window._pendingBuy=false; setTimeout(openBuyModal,120); }
