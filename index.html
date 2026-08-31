@@ -281,7 +281,7 @@ footer{background:var(--dark);padding:60px 24px 40px;text-align:center;border-to
 <body>
 
 <!-- WALLET CONNECT MODAL (shown on first visit) -->
-<div id="walletModal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(6,16,31,0.96);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:24px;">
+<div id="walletModal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(6,16,31,0.96);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:24px;">
   <div style="width:100%;max-width:460px;background:var(--navy2);border:1px solid var(--gold);padding:40px;">
     <div style="text-align:center;margin-bottom:28px;">
       <div style="font-size:2.4rem;margin-bottom:12px;">🦅</div>
@@ -294,10 +294,11 @@ footer{background:var(--dark);padding:60px 24px 40px;text-align:center;border-to
       <input id="wc-input" type="text" placeholder="0x…" autocomplete="off" spellcheck="false"
         style="width:100%;padding:14px 16px;font-family:var(--mono);font-size:0.75rem;color:var(--white);background:rgba(255,255,255,0.04);border:1px solid rgba(201,168,76,0.35);outline:none;margin-bottom:8px;letter-spacing:1px;"
         onkeydown="if(event.key==='Enter')connectWallet()"/>
+      <div id="wc-connect-notice" style="display:none;font-family:var(--mono);font-size:0.7rem;color:var(--gold);background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.3);padding:10px 14px;margin-bottom:12px;letter-spacing:1px;">★ Connect your wallet to continue purchasing $CHUMP.</div>
       <div id="wc-err" style="display:none;font-family:var(--mono);font-size:0.7rem;color:#e74c3c;margin-bottom:12px;letter-spacing:1px;"></div>
       <div style="font-family:var(--mono);font-size:0.65rem;color:rgba(255,255,255,0.22);letter-spacing:1px;margin-bottom:20px;">MetaMask · Trust Wallet · Coinbase Wallet · any EVM wallet</div>
       <button onclick="connectWallet()" style="width:100%;padding:16px;background:var(--gold);color:var(--navy);font-family:var(--mono);font-weight:700;font-size:0.82rem;letter-spacing:3px;border:none;cursor:pointer;text-transform:uppercase;margin-bottom:10px;">CONNECT →</button>
-      <button onclick="skipWallet()" style="width:100%;padding:11px;background:transparent;color:rgba(255,255,255,0.25);font-family:var(--mono);font-size:0.68rem;letter-spacing:2px;border:1px solid rgba(255,255,255,0.1);cursor:pointer;text-transform:uppercase;">SKIP FOR NOW</button>
+      <div style="font-family:var(--mono);font-size:0.65rem;color:rgba(255,255,255,0.2);letter-spacing:1px;text-align:center;margin-top:4px;">You must connect your wallet to buy $CHUMP</div>
     </div>
   </div>
 </div>
@@ -307,6 +308,7 @@ footer{background:var(--dark);padding:60px 24px 40px;text-align:center;border-to
   <a class="nav-logo" href="#">$CHUMP</a>
   <div style="display:flex;align-items:center;gap:12px;">
     <div id="nav-wallet-pill" style="display:none;font-family:var(--mono);font-size:0.65rem;letter-spacing:1px;color:var(--gold);background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.3);padding:6px 12px;cursor:pointer;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" onclick="changeWallet()" title="Click to change wallet"></div>
+    <button id="nav-connect-btn" onclick="openWalletModal()" style="display:none;font-family:var(--mono);font-size:0.65rem;letter-spacing:2px;color:var(--navy);background:var(--gold);border:none;padding:8px 14px;cursor:pointer;font-weight:700;text-transform:uppercase;white-space:nowrap;">CONNECT WALLET</button>
     <div class="nav-burger" onclick="toggleMenu()">
       <span></span><span></span><span></span>
     </div>
@@ -792,6 +794,15 @@ function saveWallet(addr){
   localStorage.setItem(WC_KEY, addr);
 }
 
+function openWalletModal(){
+  document.getElementById('wc-input').value = getSavedWallet();
+  document.getElementById('wc-err').style.display='none';
+  document.getElementById('wc-connect-notice').style.display='none';
+  document.getElementById('walletModal').style.display='flex';
+  document.body.style.overflow='hidden';
+  setTimeout(()=>document.getElementById('wc-input').focus(),100);
+}
+
 function connectWallet(){
   const val = document.getElementById('wc-input').value.trim();
   const err = document.getElementById('wc-err');
@@ -804,42 +815,31 @@ function connectWallet(){
   document.getElementById('walletModal').style.display='none';
   document.body.style.overflow='';
   updateNavPill(val);
-}
-
-function skipWallet(){
-  document.getElementById('walletModal').style.display='none';
-  document.body.style.overflow='';
+  if(window._pendingBuy){ window._pendingBuy=false; setTimeout(openBuyModal,120); }
 }
 
 function changeWallet(){
-  document.getElementById('wc-input').value = getSavedWallet();
-  document.getElementById('wc-err').style.display='none';
-  document.getElementById('walletModal').style.display='flex';
-  document.body.style.overflow='hidden';
-  setTimeout(()=>document.getElementById('wc-input').focus(),100);
+  openWalletModal();
 }
 
 function updateNavPill(addr){
   const pill = document.getElementById('nav-wallet-pill');
+  const connectBtn = document.getElementById('nav-connect-btn');
   if(addr){
     pill.style.display='block';
     pill.textContent = addr.slice(0,6)+'…'+addr.slice(-4);
     pill.title = addr+' (click to change)';
+    connectBtn.style.display='none';
   } else {
     pill.style.display='none';
+    connectBtn.style.display='block';
   }
 }
 
-/* Show wallet modal on page load if not connected */
+/* On page load — show the home page normally; show Connect Wallet button if not connected */
 document.addEventListener('DOMContentLoaded',function(){
   const saved = getSavedWallet();
-  if(saved){
-    updateNavPill(saved);
-  } else {
-    document.getElementById('walletModal').style.display='flex';
-    document.body.style.overflow='hidden';
-    setTimeout(()=>document.getElementById('wc-input').focus(),300);
-  }
+  updateNavPill(saved);
 });
 
 /* ── STORAGE HELPERS ── */
@@ -856,9 +856,20 @@ function genId(){
 
 /* ── BUY MODAL ── */
 function openBuyModal(){
+  const saved = getSavedWallet();
+  if(!saved){
+    // Must connect wallet first — open wallet modal with a prompt message
+    document.getElementById('wc-err').style.display='none';
+    const notice = document.getElementById('wc-connect-notice');
+    if(notice) notice.style.display='block';
+    openWalletModal();
+    // After connecting, re-open buy modal
+    window._pendingBuy = true;
+    return;
+  }
+  window._pendingBuy = false;
   document.getElementById('buyModal').style.display='block';
   document.body.style.overflow='hidden';
-  const saved = getSavedWallet();
   document.getElementById('dep-name').value='';
   document.getElementById('dep-wallet').value=saved;
   document.getElementById('dep-eth').value='';
