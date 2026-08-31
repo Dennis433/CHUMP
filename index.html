@@ -280,11 +280,36 @@ footer{background:var(--dark);padding:60px 24px 40px;text-align:center;border-to
 </head>
 <body>
 
+<!-- WALLET CONNECT MODAL (shown on first visit) -->
+<div id="walletModal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(6,16,31,0.96);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:24px;">
+  <div style="width:100%;max-width:460px;background:var(--navy2);border:1px solid var(--gold);padding:40px;">
+    <div style="text-align:center;margin-bottom:28px;">
+      <div style="font-size:2.4rem;margin-bottom:12px;">🦅</div>
+      <div style="font-family:var(--mono);font-size:0.68rem;letter-spacing:4px;color:var(--gold);text-transform:uppercase;margin-bottom:6px;">★ OFFICIAL PATRIOT PORTAL</div>
+      <div style="font-family:'Anton',sans-serif;font-size:2rem;margin-bottom:8px;">CONNECT WALLET</div>
+      <div style="font-family:var(--mono);font-size:0.72rem;color:rgba(255,255,255,0.35);letter-spacing:2px;line-height:1.7;">Enter your wallet address to get started.<br>This links all your deposits to your account.</div>
+    </div>
+    <div style="border-top:1px solid rgba(201,168,76,0.2);padding-top:24px;">
+      <label style="font-family:var(--mono);font-size:0.68rem;letter-spacing:3px;color:var(--gold);display:block;margin-bottom:8px;text-transform:uppercase;">Your Wallet Address</label>
+      <input id="wc-input" type="text" placeholder="0x…" autocomplete="off" spellcheck="false"
+        style="width:100%;padding:14px 16px;font-family:var(--mono);font-size:0.75rem;color:var(--white);background:rgba(255,255,255,0.04);border:1px solid rgba(201,168,76,0.35);outline:none;margin-bottom:8px;letter-spacing:1px;"
+        onkeydown="if(event.key==='Enter')connectWallet()"/>
+      <div id="wc-err" style="display:none;font-family:var(--mono);font-size:0.7rem;color:#e74c3c;margin-bottom:12px;letter-spacing:1px;"></div>
+      <div style="font-family:var(--mono);font-size:0.65rem;color:rgba(255,255,255,0.22);letter-spacing:1px;margin-bottom:20px;">MetaMask · Trust Wallet · Coinbase Wallet · any EVM wallet</div>
+      <button onclick="connectWallet()" style="width:100%;padding:16px;background:var(--gold);color:var(--navy);font-family:var(--mono);font-weight:700;font-size:0.82rem;letter-spacing:3px;border:none;cursor:pointer;text-transform:uppercase;margin-bottom:10px;">CONNECT →</button>
+      <button onclick="skipWallet()" style="width:100%;padding:11px;background:transparent;color:rgba(255,255,255,0.25);font-family:var(--mono);font-size:0.68rem;letter-spacing:2px;border:1px solid rgba(255,255,255,0.1);cursor:pointer;text-transform:uppercase;">SKIP FOR NOW</button>
+    </div>
+  </div>
+</div>
+
 <!-- NAV -->
 <nav>
   <a class="nav-logo" href="#">$CHUMP</a>
-  <div class="nav-burger" onclick="toggleMenu()">
-    <span></span><span></span><span></span>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <div id="nav-wallet-pill" style="display:none;font-family:var(--mono);font-size:0.65rem;letter-spacing:1px;color:var(--gold);background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.3);padding:6px 12px;cursor:pointer;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" onclick="changeWallet()" title="Click to change wallet"></div>
+    <div class="nav-burger" onclick="toggleMenu()">
+      <span></span><span></span><span></span>
+    </div>
   </div>
 </nav>
 <div class="nav-menu" id="navMenu">
@@ -757,6 +782,66 @@ function copyModalAddr(){
   });
 }
 
+/* ── WALLET CONNECT ── */
+const WC_KEY = 'chump_wallet';
+
+function getSavedWallet(){
+  return localStorage.getItem(WC_KEY)||'';
+}
+function saveWallet(addr){
+  localStorage.setItem(WC_KEY, addr);
+}
+
+function connectWallet(){
+  const val = document.getElementById('wc-input').value.trim();
+  const err = document.getElementById('wc-err');
+  err.style.display='none';
+  if(!val||!/^0x[0-9a-fA-F]{40}$/.test(val)){
+    err.textContent='★ Enter a valid Ethereum address (0x… 42 characters).';
+    err.style.display='block';return;
+  }
+  saveWallet(val);
+  document.getElementById('walletModal').style.display='none';
+  document.body.style.overflow='';
+  updateNavPill(val);
+}
+
+function skipWallet(){
+  document.getElementById('walletModal').style.display='none';
+  document.body.style.overflow='';
+}
+
+function changeWallet(){
+  document.getElementById('wc-input').value = getSavedWallet();
+  document.getElementById('wc-err').style.display='none';
+  document.getElementById('walletModal').style.display='flex';
+  document.body.style.overflow='hidden';
+  setTimeout(()=>document.getElementById('wc-input').focus(),100);
+}
+
+function updateNavPill(addr){
+  const pill = document.getElementById('nav-wallet-pill');
+  if(addr){
+    pill.style.display='block';
+    pill.textContent = addr.slice(0,6)+'…'+addr.slice(-4);
+    pill.title = addr+' (click to change)';
+  } else {
+    pill.style.display='none';
+  }
+}
+
+/* Show wallet modal on page load if not connected */
+document.addEventListener('DOMContentLoaded',function(){
+  const saved = getSavedWallet();
+  if(saved){
+    updateNavPill(saved);
+  } else {
+    document.getElementById('walletModal').style.display='flex';
+    document.body.style.overflow='hidden';
+    setTimeout(()=>document.getElementById('wc-input').focus(),300);
+  }
+});
+
 /* ── STORAGE HELPERS ── */
 const STORE_KEY = 'chump_deposits';
 function getDeposits(){
@@ -773,10 +858,11 @@ function genId(){
 function openBuyModal(){
   document.getElementById('buyModal').style.display='block';
   document.body.style.overflow='hidden';
-  // reset
-  ['dep-name','dep-wallet','dep-eth','dep-txhash'].forEach(id=>{
-    const el=document.getElementById(id);if(el)el.value='';
-  });
+  const saved = getSavedWallet();
+  document.getElementById('dep-name').value='';
+  document.getElementById('dep-wallet').value=saved;
+  document.getElementById('dep-eth').value='';
+  document.getElementById('dep-txhash').value='';
   document.getElementById('step1').style.display='block';
   document.getElementById('step2').style.display='none';
   document.getElementById('step3').style.display='none';
@@ -797,6 +883,8 @@ function goStep2(){
   if(!name){errEl.textContent='★ Enter your name or username.';errEl.style.display='block';return;}
   if(!wallet||!/^0x[0-9a-fA-F]{40}$/.test(wallet)){errEl.textContent='★ Enter a valid Ethereum wallet address (0x…).';errEl.style.display='block';return;}
   if(!eth||eth<=0){errEl.textContent='★ Enter a valid ETH amount.';errEl.style.display='block';return;}
+  // save wallet if changed
+  saveWallet(wallet);updateNavPill(wallet);
   document.getElementById('modal-eth-amount').textContent=eth+' ETH';
   document.getElementById('step1').style.display='none';
   document.getElementById('step2').style.display='block';
@@ -813,15 +901,11 @@ function submitDeposit(){
   const wallet=document.getElementById('dep-wallet').value.trim();
   const eth=parseFloat(document.getElementById('dep-eth').value);
   const deposit={
-    id: genId(),
-    name, wallet, eth, txhash,
-    status:'pending',   // pending | verified | rejected
-    chumpBalance:0,
-    submittedAt: new Date().toISOString()
+    id:genId(),name,wallet,eth,txhash,
+    status:'pending',chumpBalance:0,
+    submittedAt:new Date().toISOString()
   };
-  const all=getDeposits();
-  all.push(deposit);
-  saveDeposits(all);
+  const all=getDeposits();all.push(deposit);saveDeposits(all);
   document.getElementById('dep-id-display').textContent=deposit.id;
   document.getElementById('step2').style.display='none';
   document.getElementById('step3').style.display='block';
@@ -831,10 +915,12 @@ function submitDeposit(){
 function showDashboard(){
   document.getElementById('dashModal').style.display='block';
   document.body.style.overflow='hidden';
+  const saved=getSavedWallet();
+  document.getElementById('dash-wallet').value=saved;
   document.getElementById('dash-result').style.display='none';
   document.getElementById('dash-empty').style.display='none';
   document.getElementById('dash-err').style.display='none';
-  document.getElementById('dash-wallet').value='';
+  if(saved) lookupBalance();
 }
 function closeDashboard(){
   document.getElementById('dashModal').style.display='none';
