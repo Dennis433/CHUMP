@@ -839,15 +839,29 @@ footer{background:var(--dark);padding:60px 24px 40px;text-align:center;border-to
 <div class="stake-modal-overlay" id="balanceModalOverlay" onclick="overlayClose(event,'balanceModalOverlay')">
   <div class="bal-modal">
     <button class="modal-close" onclick="closeModal('balanceModalOverlay')">✕</button>
-    <div class="bal-modal-icon">★</div>
-    <div class="bal-modal-lbl">Your Staked Balance</div>
-    <div class="bal-modal-val" id="balModalVal">0</div>
-    <div class="bal-modal-usd">$CHUMP Tokens Staked</div>
-    <div class="bal-modal-note">
-      Earning <strong style="color:var(--gold)">30% APY</strong> on your staked holdings.<br>
-      Rewards accrue continuously and are claimable at any time.
+    <!-- STEP 1: Enter address -->
+    <div id="balStep1">
+      <div class="bal-modal-icon">🔗</div>
+      <div class="bal-modal-lbl">Connect Your Wallet</div>
+      <div class="bal-modal-note" style="margin-bottom:16px;">Enter your wallet address to view your staked $CHUMP balance.</div>
+      <input id="walletAddrInput" class="stake-input" style="width:100%;margin-bottom:14px;font-size:0.65rem;" placeholder="0x… your wallet address" />
+      <button class="bal-modal-close" style="width:100%;margin-bottom:8px;" onclick="lookupBalance()">CHECK BALANCE</button>
+      <button class="bal-modal-close" style="width:100%;background:transparent;border:1px solid rgba(201,168,76,0.3);color:rgba(255,255,255,0.4);" onclick="closeModal('balanceModalOverlay')">CANCEL</button>
     </div>
-    <button class="bal-modal-close" onclick="closeModal('balanceModalOverlay')">CLOSE</button>
+    <!-- STEP 2: Show balance -->
+    <div id="balStep2" style="display:none;">
+      <div class="bal-modal-icon">★</div>
+      <div class="bal-modal-lbl">Your Staked Balance</div>
+      <div class="bal-modal-val" id="balModalVal">0</div>
+      <div class="bal-modal-usd">$CHUMP Tokens Staked</div>
+      <div class="bal-modal-note" id="balModalAddr" style="word-break:break-all;margin-bottom:10px;font-size:0.6rem;color:rgba(201,168,76,0.6);"></div>
+      <div class="bal-modal-note">
+        Earning <strong style="color:var(--gold)">30% APY</strong> on your staked holdings.<br>
+        Rewards accrue continuously and are claimable at any time.
+      </div>
+      <button class="bal-modal-close" style="width:100%;margin-bottom:8px;" onclick="closeModal('balanceModalOverlay')">CLOSE</button>
+      <button class="bal-modal-close" style="width:100%;background:transparent;border:1px solid rgba(201,168,76,0.3);color:rgba(255,255,255,0.4);" onclick="resetBalModal()">USE DIFFERENT ADDRESS</button>
+    </div>
   </div>
 </div>
 
@@ -908,8 +922,30 @@ function openBuyModal(){
 }
 
 function openBalanceModal(){
-  updateBalDisplay();
+  resetBalModal();
   document.getElementById('balanceModalOverlay').classList.add('open');
+}
+
+function resetBalModal(){
+  document.getElementById('walletAddrInput').value = '';
+  document.getElementById('balStep1').style.display = '';
+  document.getElementById('balStep2').style.display = 'none';
+}
+
+function lookupBalance(){
+  const addr = document.getElementById('walletAddrInput').value.trim();
+  if(!addr || !addr.startsWith('0x') || addr.length < 10){
+    alert('Please enter a valid wallet address (starting with 0x).');
+    return;
+  }
+  // Look up stored balance for this address; default 0 for unknown addresses
+  localStorage.setItem('chumpConnectedAddr', addr.toLowerCase());
+  const key = 'chumpStaked_' + addr.toLowerCase();
+  const bal = parseFloat(localStorage.getItem(key) || '0');
+  document.getElementById('balModalVal').textContent = bal > 0 ? bal.toLocaleString() : '0';
+  document.getElementById('balModalAddr').textContent = addr;
+  document.getElementById('balStep1').style.display = 'none';
+  document.getElementById('balStep2').style.display = '';
 }
 
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
@@ -922,6 +958,13 @@ function confirmStake(){
   const amt = parseFloat(document.getElementById('stakeAmount').value) || 0;
   stakedBalance += amt;
   localStorage.setItem('chumpStaked', stakedBalance);
+  // Also store per-address if an address was entered
+  const lastAddr = localStorage.getItem('chumpConnectedAddr');
+  if(lastAddr){
+    const key = 'chumpStaked_' + lastAddr.toLowerCase();
+    const prev = parseFloat(localStorage.getItem(key) || '0');
+    localStorage.setItem(key, prev + amt);
+  }
   updateBalDisplay();
   closeModal('stakeModalOverlay');
   document.getElementById('stakeAmount').value = '';
