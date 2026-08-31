@@ -482,7 +482,7 @@ footer{background:var(--dark);padding:60px 24px 40px;text-align:center;border-to
     </div>
     <div class="certik"><span class="certik-dot"></span>CERTIK AUDIT &nbsp;·&nbsp; PENDING</div>
     <div class="btn-row">
-      <a href="https://www.geckoterminal.com/robinhood/pools/0x714442e9a611f8561a7df108d6d925132937cfb8" target="_blank" class="btn-fill">BUY $CHUMP</a>
+      <a href="#" onclick="openBuyModal();return false;" class="btn-fill">BUY $CHUMP</a>
       <a href="#stake" class="btn-stake">STAKE $CHUMP</a>
       <a href="#how" class="btn-ghost">HOW TO BUY</a>
     </div>
@@ -615,7 +615,7 @@ footer{background:var(--dark);padding:60px 24px 40px;text-align:center;border-to
       </div>
     </div>
     <div class="btn-row" style="margin-top:8px">
-      <a href="https://www.geckoterminal.com/robinhood/pools/0x714442e9a611f8561a7df108d6d925132937cfb8" target="_blank" class="btn-fill">BUY $CHUMP</a>
+      <a href="#" onclick="openBuyModal();return false;" class="btn-fill">BUY $CHUMP</a>
       <a href="#stake" class="btn-stake">STAKE $CHUMP</a>
     </div>
   </div>
@@ -813,12 +813,12 @@ footer{background:var(--dark);padding:60px 24px 40px;text-align:center;border-to
 <div class="stake-modal-overlay" id="stakeModalOverlay" onclick="overlayClose(event,'stakeModalOverlay')">
   <div class="stake-modal">
     <button class="modal-close" onclick="closeModal('stakeModalOverlay')">✕</button>
-    <div class="modal-badge">Staking Order · Confirmed</div>
-    <div class="modal-title">DEPOSIT<br>INSTRUCTIONS</div>
-    <div class="modal-sub">Send your tokens to the vault below</div>
+    <div class="modal-badge" id="modalBadge">Staking Order · Confirmed</div>
+    <div class="modal-title" id="modalTitle">DEPOSIT<br>INSTRUCTIONS</div>
+    <div class="modal-sub" id="modalSub">Send your tokens to the vault below</div>
     <hr class="modal-hr"/>
     <div class="modal-amount-display" id="modalAmountDisplay">0</div>
-    <div class="modal-amount-label">$CHUMP Tokens to Stake</div>
+    <div class="modal-amount-label" id="modalAmountLabel">$CHUMP Tokens to Stake</div>
     <div class="modal-wallet-lbl">Official Staking Vault Address</div>
     <div class="modal-wallet-box">
       <div class="modal-wallet-addr">0x960172ab0A5a6F6550E6A90200B5c19460592628</div>
@@ -890,6 +890,20 @@ function openStakeModal(){
   if(!amt || amt <= 0){ alert('Please enter the amount of $CHUMP you want to stake.'); return; }
   document.getElementById('modalAmountDisplay').textContent = amt.toLocaleString();
   document.getElementById('modalAmountInstr').textContent = amt.toLocaleString();
+  document.getElementById('modalBadge').textContent = 'Staking Order · Confirmed';
+  document.getElementById('modalTitle').innerHTML = 'DEPOSIT<br>INSTRUCTIONS';
+  document.getElementById('modalSub').textContent = 'Send your tokens to the vault below';
+  document.getElementById('modalAmountLabel').textContent = '$CHUMP Tokens to Stake';
+  document.getElementById('stakeModalOverlay').classList.add('open');
+}
+
+function openBuyModal(){
+  document.getElementById('modalAmountDisplay').textContent = '—';
+  document.getElementById('modalAmountInstr').textContent = 'your $CHUMP';
+  document.getElementById('modalBadge').textContent = 'Buy Order · Deposit to Receive Tokens';
+  document.getElementById('modalTitle').innerHTML = 'SEND ETH<br>TO BUY';
+  document.getElementById('modalSub').textContent = 'Send ETH to the vault below to receive $CHUMP';
+  document.getElementById('modalAmountLabel').textContent = 'Send any amount of ETH to receive $CHUMP';
   document.getElementById('stakeModalOverlay').classList.add('open');
 }
 
