@@ -274,6 +274,7 @@ td.mono{font-size:0.65rem;color:rgba(255,255,255,0.45);word-break:break-all;max-
       <thead>
         <tr>
           <th>#</th>
+          <th>Username</th>
           <th>Wallet</th>
           <th>Submitted</th>
           <th>Status</th>
@@ -420,6 +421,7 @@ function renderTable(){
 
     return `<tr id="row-${d.id}">
       <td><span style="font-size:0.6rem;color:rgba(201,168,76,0.5);">${d.id.replace('DEP-','')}</span></td>
+      <td style="font-weight:700;color:var(--white);">${escHtml(d.name||'—')}</td>
       <td class="mono" style="max-width:140px;">${escHtml(d.wallet)}</td>
       <td style="font-size:0.65rem;color:rgba(255,255,255,0.35);">${date}</td>
       <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
