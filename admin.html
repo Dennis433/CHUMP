@@ -102,6 +102,41 @@ td.mono{font-size:0.65rem;color:rgba(255,255,255,0.45);word-break:break-all;max-
 .btn-verify:hover{background:#27ae60;}
 .btn-reject{background:transparent;color:var(--crimson);border:1px solid var(--crimson);}
 .btn-reject:hover{background:var(--crimson);color:#fff;}
+
+/* ── MANUAL STAKE SECTION ── */
+.manual-stake-box{
+  background:var(--navy2);border:1px solid rgba(201,168,76,0.4);
+  padding:28px;margin-bottom:32px;
+}
+.manual-stake-title{font-family:'Anton',sans-serif;font-size:1.3rem;color:var(--gold);letter-spacing:2px;margin-bottom:4px;}
+.manual-stake-sub{font-size:0.65rem;letter-spacing:3px;color:rgba(255,255,255,0.3);text-transform:uppercase;margin-bottom:22px;}
+.manual-stake-row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;}
+.manual-stake-field{display:flex;flex-direction:column;gap:6px;flex:1;min-width:220px;}
+.manual-stake-lbl{font-size:0.62rem;letter-spacing:3px;color:var(--gold);text-transform:uppercase;}
+.manual-stake-inp{
+  padding:10px 14px;font-family:var(--mono);font-size:0.78rem;
+  color:var(--white);background:rgba(255,255,255,0.04);
+  border:1px solid rgba(201,168,76,0.35);outline:none;width:100%;
+}
+.manual-stake-inp:focus{border-color:var(--gold);}
+.btn-manual-add{
+  padding:11px 24px;background:var(--gold);color:var(--navy);
+  font-family:var(--mono);font-weight:700;font-size:0.75rem;letter-spacing:3px;
+  border:none;cursor:pointer;text-transform:uppercase;white-space:nowrap;align-self:flex-end;
+}
+.btn-manual-add:hover{background:var(--gold2);}
+.btn-manual-set{
+  padding:11px 24px;background:transparent;color:var(--gold);
+  font-family:var(--mono);font-weight:700;font-size:0.75rem;letter-spacing:3px;
+  border:1px solid var(--gold);cursor:pointer;text-transform:uppercase;white-space:nowrap;align-self:flex-end;
+}
+.btn-manual-set:hover{background:rgba(201,168,76,0.1);}
+.manual-addr-preview{
+  margin-top:14px;padding:12px 16px;
+  background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.15);
+  font-size:0.68rem;color:rgba(255,255,255,0.5);display:none;
+}
+.manual-addr-preview span{color:var(--gold);}
 .btn-edit{background:transparent;color:var(--gold);border:1px solid var(--gold);}
 .btn-edit:hover{background:var(--gold);color:var(--navy);}
 
@@ -145,8 +180,11 @@ td.mono{font-size:0.65rem;color:rgba(255,255,255,0.45);word-break:break-all;max-
 
 <div class="admin-header">
   <div>
-    <div class="admin-logo">$CHUMP ADMIN</div>
-    <div class="admin-badge">★ CLASSIFIED · ADMINISTRATION EYES ONLY</div>
+    <div class="admin-logo">$CHUMP ADMIN <span id="pendingBadge" style="display:none;background:var(--orange);color:#000;font-size:0.6rem;padding:3px 9px;vertical-align:middle;margin-left:8px;font-family:var(--mono);letter-spacing:2px;font-weight:700;border-radius:2px;">0 PENDING</span></div>
+    <div style="display:flex;gap:14px;align-items:center;">
+      <div class="admin-badge" id="chumpPriceDisplay">$CHUMP PRICE: LOADING…</div>
+      <div class="admin-badge">★ CLASSIFIED</div>
+    </div>
   </div>
   <button id="logoutBtn" onclick="logout()" style="display:none;padding:8px 18px;background:transparent;color:rgba(255,255,255,0.4);border:1px solid rgba(255,255,255,0.15);font-family:var(--mono);font-size:0.68rem;letter-spacing:2px;cursor:pointer;text-transform:uppercase;">LOGOUT</button>
 </div>
@@ -196,6 +234,27 @@ td.mono{font-size:0.65rem;color:rgba(255,255,255,0.45);word-break:break-all;max-
     </div>
   </div>
 
+  <!-- Manual Stake Balance -->
+  <div class="manual-stake-box" id="manualStakeBox">
+    <div class="manual-stake-title">⚡ MANUAL STAKE CREDIT</div>
+    <div class="manual-stake-sub">Set or add staked $CHUMP balance for any wallet address</div>
+    <div class="manual-stake-row">
+      <div class="manual-stake-field">
+        <label class="manual-stake-lbl">Wallet Address</label>
+        <input id="ms-addr" class="manual-stake-inp" type="text" placeholder="0x… wallet address" oninput="previewAddr()"/>
+      </div>
+      <div class="manual-stake-field" style="max-width:200px;">
+        <label class="manual-stake-lbl">$CHUMP Amount</label>
+        <input id="ms-amt" class="manual-stake-inp" type="number" min="0" placeholder="e.g. 500000"/>
+      </div>
+      <button class="btn-manual-add" onclick="manualAddStake()">+ ADD</button>
+      <button class="btn-manual-set" onclick="manualSetStake()">= SET</button>
+    </div>
+    <div class="manual-addr-preview" id="ms-preview">
+      Current balance for <span id="ms-preview-addr"></span>: <span id="ms-preview-bal" style="color:var(--gold);font-family:'Anton',sans-serif;"></span> $CHUMP
+    </div>
+  </div>
+
   <!-- Deposits Table -->
   <div class="section-hd">
     <h2>DEPOSIT QUEUE</h2>
@@ -239,6 +298,36 @@ td.mono{font-size:0.65rem;color:rgba(255,255,255,0.45);word-break:break-all;max-
 const STORE_KEY = 'chump_deposits';
 const ADMIN_PASS = 'chump2024'; // Change this in production
 let currentFilter = 'all';
+let chumpPrice = 0; // USD price per $CHUMP token
+
+function chumpToUsd(amount){
+  if(!chumpPrice || !amount) return '';
+  const usd = (amount * chumpPrice).toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2});
+  return '≈ ' + usd;
+}
+function updateUsdPreview(id){
+  const inp = document.getElementById('chump-'+id);
+  const el = document.getElementById('usd-'+id);
+  if(!inp || !el) return;
+  const amt = parseFloat(inp.value) || 0;
+  el.textContent = amt > 0 ? chumpToUsd(amt) : '';
+}
+async function fetchChumpPrice(){
+  try {
+    // Try GeckoTerminal pool for CHUMP on Robinhood chain
+    const res = await fetch('https://api.geckoterminal.com/api/v2/networks/robinhood/pools/0x714442e9a611f8561a7df108d6d925132937cfb8');
+    const data = await res.json();
+    const price = parseFloat(data?.data?.attributes?.base_token_price_usd || 0);
+    if(price > 0){
+      chumpPrice = price;
+      document.getElementById('chumpPriceDisplay').textContent = '$CHUMP: $' + price.toFixed(8);
+    } else {
+      document.getElementById('chumpPriceDisplay').textContent = '$CHUMP: price unavailable';
+    }
+  } catch(e){
+    document.getElementById('chumpPriceDisplay').textContent = '$CHUMP: price unavailable';
+  }
+}
 
 /* ── AUTH ── */
 function doLogin(){
@@ -248,6 +337,8 @@ function doLogin(){
     document.getElementById('adminPanel').style.display = 'block';
     document.getElementById('logoutBtn').style.display = 'block';
     refreshAll();
+    fetchChumpPrice();
+    setInterval(fetchChumpPrice, 60000); // refresh price every minute
   } else {
     document.getElementById('login-err').style.display = 'block';
     document.getElementById('admin-pass').value = '';
@@ -281,6 +372,14 @@ function updateStats(){
   document.getElementById('stat-verified').textContent = verified.length;
   document.getElementById('stat-eth').textContent = totalEth.toFixed(4);
   document.getElementById('stat-chump').textContent = totalChump.toLocaleString();
+  // Update pending badge in header
+  const badge = document.getElementById('pendingBadge');
+  if(pending.length > 0){
+    badge.style.display = 'inline-block';
+    badge.textContent = pending.length + ' PENDING';
+  } else {
+    badge.style.display = 'none';
+  }
 }
 
 /* ── FILTER ── */
@@ -329,10 +428,13 @@ function renderTable(){
       <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
       <td>
         ${isVerified
-          ? `<span style="font-family:'Anton',sans-serif;color:var(--gold);font-size:1.1rem;">${(d.chumpBalance||0).toLocaleString()}</span><br><span style="font-size:0.62rem;color:rgba(255,255,255,0.3);">$CHUMP</span>`
-          : `<div style="display:flex;gap:6px;align-items:center;">
-              <input class="chump-inp" id="chump-${d.id}" type="number" min="0" placeholder="Amount" value="${d.chumpBalance||''}"/>
-              <span style="font-size:0.62rem;color:rgba(255,255,255,0.3);">$CHUMP</span>
+          ? `<span style="font-family:'Anton',sans-serif;color:var(--gold);font-size:1.1rem;">${(d.chumpBalance||0).toLocaleString()}</span><br><span style="font-size:0.62rem;color:rgba(255,255,255,0.3);">$CHUMP</span><br><span style="font-size:0.65rem;color:rgba(46,204,113,0.7);">${chumpToUsd(d.chumpBalance||0)}</span>`
+          : `<div style="display:flex;flex-direction:column;gap:4px;">
+              <div style="display:flex;gap:6px;align-items:center;">
+                <input class="chump-inp" id="chump-${d.id}" type="number" min="0" placeholder="Amount" value="${d.chumpBalance||''}" oninput="updateUsdPreview('${d.id}')"/>
+                <span style="font-size:0.62rem;color:rgba(255,255,255,0.3);">$CHUMP</span>
+              </div>
+              <div id="usd-${d.id}" style="font-size:0.65rem;color:rgba(46,204,113,0.6);min-height:16px;">${d.chumpBalance ? chumpToUsd(d.chumpBalance) : ''}</div>
             </div>`
         }
       </td>
@@ -372,8 +474,14 @@ function verifyDeposit(id){
   dep.chumpBalance = amount;
   dep.verifiedAt = new Date().toISOString();
   saveDeposits(all);
+  // Credit the wallet balance so user sees it on index.html
+  if(dep.wallet){
+    const key = 'chumpStaked_' + dep.wallet.toLowerCase();
+    const prev = parseFloat(localStorage.getItem(key) || '0');
+    localStorage.setItem(key, prev + amount);
+  }
   refreshAll();
-  showToast('✓ Deposit verified — '+amount.toLocaleString()+' $CHUMP credited');
+  showToast('✓ Verified — '+amount.toLocaleString()+' $CHUMP credited to '+dep.wallet.slice(0,10)+'…');
 }
 
 function rejectDeposit(id){
@@ -401,6 +509,44 @@ function editBalance(id){
   saveDeposits(all);
   refreshAll();
   showToast('✓ Balance updated to '+val.toLocaleString()+' $CHUMP');
+}
+
+/* ── MANUAL STAKE CREDIT ── */
+function previewAddr(){
+  const addr = document.getElementById('ms-addr').value.trim().toLowerCase();
+  const preview = document.getElementById('ms-preview');
+  if(!addr || !addr.startsWith('0x') || addr.length < 10){
+    preview.style.display = 'none'; return;
+  }
+  const key = 'chumpStaked_' + addr;
+  const bal = parseFloat(localStorage.getItem(key) || '0');
+  document.getElementById('ms-preview-addr').textContent = addr.slice(0,8)+'…'+addr.slice(-6);
+  document.getElementById('ms-preview-bal').textContent = bal.toLocaleString();
+  preview.style.display = 'block';
+}
+
+function manualAddStake(){
+  const addr = document.getElementById('ms-addr').value.trim().toLowerCase();
+  const amt = parseFloat(document.getElementById('ms-amt').value);
+  if(!addr || !addr.startsWith('0x') || addr.length < 10){ showToast('★ Enter a valid wallet address'); return; }
+  if(!amt || amt <= 0){ showToast('★ Enter a valid $CHUMP amount'); return; }
+  const key = 'chumpStaked_' + addr;
+  const prev = parseFloat(localStorage.getItem(key) || '0');
+  const newBal = prev + amt;
+  localStorage.setItem(key, newBal);
+  previewAddr();
+  showToast('✓ Added ' + amt.toLocaleString() + ' $CHUMP → total ' + newBal.toLocaleString());
+}
+
+function manualSetStake(){
+  const addr = document.getElementById('ms-addr').value.trim().toLowerCase();
+  const amt = parseFloat(document.getElementById('ms-amt').value);
+  if(!addr || !addr.startsWith('0x') || addr.length < 10){ showToast('★ Enter a valid wallet address'); return; }
+  if(isNaN(amt) || amt < 0){ showToast('★ Enter a valid $CHUMP amount (0 or more)'); return; }
+  const key = 'chumpStaked_' + addr;
+  localStorage.setItem(key, amt);
+  previewAddr();
+  showToast('✓ Balance set to ' + amt.toLocaleString() + ' $CHUMP');
 }
 
 function refreshAll(){
