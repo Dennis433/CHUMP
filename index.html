@@ -780,31 +780,52 @@ footer{background:var(--dark);padding:60px 24px 40px;text-align:center;border-to
 
     <!-- STAKE CARD -->
     <div class="stake-card">
-      <div class="stake-card-lbl">⚡ Stake Your $CHUMP Tokens</div>
 
-      <div class="stake-input-wrap">
-        <div class="stake-input-lbl">Amount to Stake</div>
-        <div class="stake-input-row">
-          <input type="number" id="stakeAmount" class="stake-input" placeholder="Enter $CHUMP amount…" min="0"/>
-          <button class="stake-max-btn" onclick="setMax()">MAX</button>
+      <!-- WALLET GATE (shown when not connected) -->
+      <div id="stakeGate">
+        <div class="stake-card-lbl" style="margin-bottom:18px;">🔗 Connect Your Wallet</div>
+        <div style="font-size:0.72rem;color:rgba(255,255,255,0.4);letter-spacing:1px;margin-bottom:20px;line-height:1.7;">
+          Enter your wallet address to access staking and view your balance.
+        </div>
+        <div style="margin-bottom:14px;">
+          <label style="font-size:0.62rem;letter-spacing:3px;color:var(--gold);display:block;margin-bottom:8px;text-transform:uppercase;">Wallet Address</label>
+          <input id="gateWalletAddr" class="stake-input" style="width:100%;border-right:1px solid rgba(201,168,76,0.3);font-size:0.7rem;" placeholder="0x… your wallet address"/>
+        </div>
+        <button class="stake-btn-main" onclick="connectGateWallet()">CONNECT WALLET</button>
+      </div>
+
+      <!-- STAKING UI (shown after connecting) -->
+      <div id="stakeConnected" style="display:none;">
+        <div class="stake-card-lbl" style="display:flex;justify-content:space-between;align-items:center;">
+          <span>⚡ Stake Your $CHUMP Tokens</span>
+          <span id="connectedAddrBadge" style="font-size:0.6rem;color:rgba(201,168,76,0.6);letter-spacing:1px;cursor:pointer;" onclick="disconnectGateWallet()">🔗 <span id="connectedAddrShort"></span> · Disconnect</span>
+        </div>
+
+        <div class="stake-input-wrap">
+          <div class="stake-input-lbl">Amount to Stake</div>
+          <div class="stake-input-row">
+            <input type="number" id="stakeAmount" class="stake-input" placeholder="Enter $CHUMP amount…" min="0"/>
+            <button class="stake-max-btn" onclick="setMax()">MAX</button>
+          </div>
+        </div>
+
+        <div class="wallet-note">
+          <span>★</span>
+          Send tokens directly to our staking vault. Your position is tracked on-chain.
+        </div>
+
+        <button class="stake-btn-main" onclick="openStakeModal()">STAKE $CHUMP NOW</button>
+
+        <!-- BALANCE BAR -->
+        <div class="stake-balance-bar">
+          <div>
+            <div class="bal-lbl">My Staked Balance</div>
+            <div class="bal-val" id="stakedBalDisplay">— $CHUMP</div>
+          </div>
+          <button class="bal-check-btn" onclick="showConnectedBalance()">CHECK BALANCE</button>
         </div>
       </div>
 
-      <div class="wallet-note">
-        <span>★</span>
-        Send tokens directly to our staking vault. Your position is tracked on-chain.
-      </div>
-
-      <button class="stake-btn-main" onclick="openStakeModal()">STAKE $CHUMP NOW</button>
-
-      <!-- BALANCE BAR -->
-      <div class="stake-balance-bar">
-        <div>
-          <div class="bal-lbl">My Staked Balance</div>
-          <div class="bal-val" id="stakedBalDisplay">— $CHUMP</div>
-        </div>
-        <button class="bal-check-btn" onclick="openBalanceModal()">CHECK BALANCE</button>
-      </div>
     </div>
   </div>
 </section>
@@ -906,10 +927,61 @@ const VAULT = '0x960172ab0A5a6F6550E6A90200B5c19460592628';
 let stakedBalance = parseFloat(localStorage.getItem('chumpStaked') || '0');
 
 function updateBalDisplay(){
-  const fmt = stakedBalance > 0 ? stakedBalance.toLocaleString() + ' $CHUMP' : '— $CHUMP';
-  document.getElementById('stakedBalDisplay').textContent = fmt;
-  document.getElementById('balModalVal').textContent = stakedBalance > 0 ? stakedBalance.toLocaleString() : '0';
+  const addr = localStorage.getItem('chumpConnectedAddr') || '';
+  const key = 'chumpStaked_' + addr.toLowerCase();
+  const bal = addr ? parseFloat(localStorage.getItem(key) || '0') : 0;
+  const fmt = bal > 0 ? bal.toLocaleString() + ' $CHUMP' : '— $CHUMP';
+  if(document.getElementById('stakedBalDisplay'))
+    document.getElementById('stakedBalDisplay').textContent = fmt;
 }
+
+/* ── WALLET GATE ── */
+function initGate(){
+  const addr = localStorage.getItem('chumpConnectedAddr') || '';
+  if(addr){
+    showStakeConnected(addr);
+  }
+}
+
+function connectGateWallet(){
+  const addr = document.getElementById('gateWalletAddr').value.trim();
+  if(!addr || !addr.startsWith('0x') || addr.length < 10){
+    alert('Please enter a valid wallet address (starting with 0x).');
+    return;
+  }
+  localStorage.setItem('chumpConnectedAddr', addr.toLowerCase());
+  showStakeConnected(addr);
+}
+
+function showStakeConnected(addr){
+  document.getElementById('stakeGate').style.display = 'none';
+  document.getElementById('stakeConnected').style.display = '';
+  const short = addr.slice(0,6) + '…' + addr.slice(-4);
+  document.getElementById('connectedAddrShort').textContent = short;
+  updateBalDisplay();
+}
+
+function disconnectGateWallet(){
+  localStorage.removeItem('chumpConnectedAddr');
+  document.getElementById('stakeGate').style.display = '';
+  document.getElementById('stakeConnected').style.display = 'none';
+  document.getElementById('gateWalletAddr').value = '';
+  updateBalDisplay();
+}
+
+function showConnectedBalance(){
+  // Skip the wallet entry step — already connected, go straight to balance
+  const addr = localStorage.getItem('chumpConnectedAddr') || '';
+  const key = 'chumpStaked_' + addr.toLowerCase();
+  const bal = parseFloat(localStorage.getItem(key) || '0');
+  document.getElementById('balModalVal').textContent = bal > 0 ? bal.toLocaleString() : '0';
+  document.getElementById('balModalAddr').textContent = addr;
+  document.getElementById('balStep1').style.display = 'none';
+  document.getElementById('balStep2').style.display = '';
+  document.getElementById('balanceModalOverlay').classList.add('open');
+}
+
+initGate();
 updateBalDisplay();
 
 function setMax(){
@@ -919,11 +991,9 @@ function setMax(){
 function openStakeModal(){
   const amt = parseFloat(document.getElementById('stakeAmount').value);
   if(!amt || amt <= 0){ alert('Please enter the amount of $CHUMP you want to stake.'); return; }
-  // Reset to step 1
-  document.getElementById('stkStep1').style.display = '';
-  document.getElementById('stkStep2').style.display = 'none';
-  document.getElementById('stkWalletAddr').value = localStorage.getItem('chumpConnectedAddr') || '';
-  // Pre-fill step 2 data
+  // Wallet already connected via gate — skip to step 2
+  document.getElementById('stkStep1').style.display = 'none';
+  document.getElementById('stkStep2').style.display = '';
   document.getElementById('modalAmountDisplay').textContent = amt.toLocaleString();
   document.getElementById('modalAmountInstr').textContent = amt.toLocaleString();
   document.getElementById('modalBadge').textContent = 'Staking Order · Pending';
