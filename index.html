@@ -412,98 +412,201 @@ nav{
   .modal-wallet-addr{font-size:0.6rem;}
 }
 
-/* ── PHANTOM WALLET STYLES ── */
+/* ── PHANTOM WALLET CARD (screenshot match) ── */
 :root {
-  --ph-bg: #1C1C28;
-  --ph-surface: #252536;
-  --ph-border: rgba(255,255,255,0.07);
   --ph-purple: #9945FF;
-  --ph-purple2: #7B2FBE;
+  --ph-purple-dark: #7B2FBE;
+  --ph-bg: #131320;
+  --ph-surface: #1E1E2E;
+  --ph-border: rgba(255,255,255,0.07);
   --ph-green: #14F195;
-  --ph-text: #FFFFFF;
   --ph-sub: rgba(255,255,255,0.45);
-  --ph-muted: rgba(255,255,255,0.25);
-  --ph-radius: 16px;
-  --ph-radius-sm: 10px;
+  --ph-muted: rgba(255,255,255,0.22);
 }
 
-/* ── PHANTOM BALANCE BAR (inline in staking card) ── */
-.phantom-wallet-card {
-  background: var(--ph-bg);
-  border-radius: var(--ph-radius);
-  padding: 4px 0;
-  border: 1px solid var(--ph-border);
-  margin-top: 4px;
+.pw-card {
+  border-radius: 20px;
   overflow: hidden;
+  background: var(--ph-bg);
+  margin-top: 8px;
+  box-shadow: 0 8px 40px rgba(153,69,255,0.18);
 }
-.phantom-wallet-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 14px 18px 10px;
+
+/* Purple hero section */
+.pw-hero {
+  background: linear-gradient(160deg, #A855F7 0%, #7C3AED 55%, #6D28D9 100%);
+  padding: 24px 20px 20px;
+  text-align: center;
+  position: relative;
 }
-.phantom-wallet-label {
+.pw-avatar {
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  border: 2px solid rgba(255,255,255,0.35);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.3rem; color: white;
+  margin: 0 auto 10px;
+}
+.pw-username {
+  font-size: 1rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 2px;
+}
+.pw-addr {
   font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--ph-sub);
-  letter-spacing: 0.5px;
+  color: rgba(255,255,255,0.55);
+  margin-bottom: 14px;
+  font-family: 'Courier Prime', monospace;
 }
-.phantom-refresh-btn {
+.pw-total-label {
+  font-size: 0.62rem;
+  letter-spacing: 3px;
+  color: rgba(255,255,255,0.55);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.pw-total-val {
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: white;
+  margin-bottom: 4px;
+  min-height: 2.1rem;
+}
+.pw-connected-dot {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.65);
+  margin-bottom: 18px;
+}
+.pw-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--ph-green);
+  box-shadow: 0 0 6px var(--ph-green);
+  display: inline-block;
+}
+
+/* Action buttons row */
+.pw-actions {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+.pw-action-btn {
   background: none;
   border: none;
-  color: var(--ph-purple);
-  font-size: 0.72rem;
-  font-weight: 600;
   cursor: pointer;
-  padding: 4px 10px;
-  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  color: white;
+  padding: 0;
+}
+.pw-action-icon {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.18);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
   transition: background 0.15s;
 }
-.phantom-refresh-btn:hover { background: rgba(153,69,255,0.12); }
+.pw-action-btn:hover .pw-action-icon { background: rgba(255,255,255,0.28); }
+.pw-action-lbl {
+  font-size: 0.68rem;
+  color: rgba(255,255,255,0.75);
+  font-weight: 500;
+}
 
-.phantom-token-row {
+/* Token section */
+.pw-token-section {
+  padding: 16px 0 4px;
+  background: var(--ph-bg);
+}
+.pw-section-label {
+  font-size: 0.62rem;
+  letter-spacing: 2.5px;
+  color: var(--ph-muted);
+  padding: 0 18px 10px;
+  font-weight: 600;
+}
+.pw-token-row {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 12px 18px;
-  border-top: 1px solid var(--ph-border);
+  gap: 12px;
+  padding: 10px 18px;
   transition: background 0.15s;
-  cursor: default;
 }
-.phantom-token-row:hover { background: rgba(255,255,255,0.03); }
-.phantom-token-row-last { border-radius: 0 0 var(--ph-radius) var(--ph-radius); }
-
-.phantom-token-icon {
+.pw-token-row:hover { background: rgba(255,255,255,0.03); }
+.pw-token-avatar {
   width: 38px; height: 38px;
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  font-size: 1rem; flex-shrink: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  flex-shrink: 0;
 }
-.phantom-icon-staked { background: linear-gradient(135deg, #9945FF, #7B2FBE); }
-.phantom-icon-wallet  { background: linear-gradient(135deg, #14F195, #0FAE6E); color: #06101F; }
+.pw-chump-avatar  { background: #C9A84C; color: #06101F; }
+.pw-staked-avatar { background: linear-gradient(135deg, #9945FF, #6D28D9); color: white; }
+.pw-token-info { flex: 1; min-width: 0; }
+.pw-token-name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 2px;
+}
+.pw-token-sub { font-size: 0.72rem; color: var(--ph-sub); }
+.pw-apy-badge {
+  display: inline-block;
+  background: var(--ph-green);
+  color: #06101F;
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
+  margin-top: 4px;
+  letter-spacing: 0.5px;
+}
+.pw-token-right { text-align: right; }
+.pw-token-amount {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 2px;
+}
+.pw-token-usd { font-size: 0.72rem; color: var(--ph-sub); }
 
-.phantom-token-info { flex: 1; min-width: 0; }
-.phantom-token-name {
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: var(--ph-text);
-  margin-bottom: 2px;
+/* Rewards section */
+.pw-rewards-section {
+  background: var(--ph-surface);
+  border-top: 1px solid var(--ph-border);
+  padding: 14px 0 18px;
 }
-.phantom-token-net {
-  font-size: 0.72rem;
-  color: var(--ph-sub);
+.pw-reward-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 18px;
 }
-.phantom-token-right { text-align: right; }
-.phantom-token-amount {
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: var(--ph-text);
-  margin-bottom: 2px;
+.pw-reward-icon {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: rgba(153,69,255,0.2);
+  color: var(--ph-purple);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.9rem;
+  flex-shrink: 0;
 }
-.phantom-token-usd {
-  font-size: 0.72rem;
-  color: var(--ph-sub);
-}
+.pw-reward-info { flex: 1; }
+.pw-reward-tier { font-size: 0.82rem; font-weight: 600; color: white; margin-bottom: 2px; }
+.pw-reward-rate { font-size: 0.7rem; color: var(--ph-sub); }
+.pw-reward-right { text-align: right; }
+.pw-reward-val { font-size: 0.88rem; font-weight: 700; color: var(--ph-green); margin-bottom: 2px; }
+.pw-reward-usd { font-size: 0.7rem; color: var(--ph-sub); }
 
 /* ── PHANTOM MODAL ── */
 .phantom-modal {
@@ -522,11 +625,7 @@ nav{
   padding: 20px 24px 16px;
   border-bottom: 1px solid var(--ph-border);
 }
-.phantom-modal-title-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
+.phantom-modal-title-row { display: flex; align-items: center; gap: 10px; }
 .phantom-modal-logo {
   width: 28px; height: 28px;
   background: linear-gradient(135deg, #9945FF, #7B2FBE);
@@ -534,49 +633,30 @@ nav{
   display: flex; align-items: center; justify-content: center;
   font-size: 0.82rem; color: white;
 }
-.phantom-modal-app {
-  font-size: 0.88rem;
-  font-weight: 700;
-  color: var(--ph-text);
-}
+.phantom-modal-app { font-size: 0.88rem; font-weight: 700; color: white; }
 .phantom-modal-close {
   background: rgba(255,255,255,0.08);
-  border: none;
-  color: var(--ph-sub);
+  border: none; color: var(--ph-sub);
   width: 28px; height: 28px;
-  border-radius: 50%;
-  font-size: 0.75rem;
+  border-radius: 50%; font-size: 0.75rem;
   cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   transition: background 0.15s;
 }
 .phantom-modal-close:hover { background: rgba(255,255,255,0.14); color: white; }
 
-/* Connect screen */
-.phantom-connect-hero {
-  text-align: center;
-  padding: 32px 24px 20px;
-}
+.phantom-connect-hero { text-align: center; padding: 32px 24px 20px; }
 .phantom-connect-icon { font-size: 2.4rem; margin-bottom: 12px; }
-.phantom-connect-title {
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: var(--ph-text);
-  margin-bottom: 6px;
-}
-.phantom-connect-sub {
-  font-size: 0.82rem;
-  color: var(--ph-sub);
-  line-height: 1.5;
-}
+.phantom-connect-title { font-size: 1.2rem; font-weight: 700; color: white; margin-bottom: 6px; }
+.phantom-connect-sub { font-size: 0.82rem; color: var(--ph-sub); line-height: 1.5; }
 .phantom-input-wrap { padding: 0 24px 16px; }
 .phantom-input {
   width: 100%;
   background: var(--ph-surface);
   border: 1px solid var(--ph-border);
-  border-radius: var(--ph-radius-sm);
+  border-radius: 10px;
   padding: 14px 16px;
-  color: var(--ph-text);
+  color: white;
   font-size: 0.82rem;
   font-family: 'Inter', sans-serif;
   outline: none;
@@ -584,134 +664,49 @@ nav{
 }
 .phantom-input:focus { border-color: var(--ph-purple); }
 .phantom-input::placeholder { color: var(--ph-muted); }
-
 .phantom-btn-primary {
-  display: block;
-  width: calc(100% - 48px);
-  margin: 0 24px 10px;
-  padding: 14px;
-  background: var(--ph-purple);
-  color: white;
-  border: none;
-  border-radius: var(--ph-radius-sm);
-  font-size: 0.9rem;
-  font-weight: 700;
-  font-family: 'Inter', sans-serif;
-  cursor: pointer;
-  transition: background 0.15s;
+  display: block; width: calc(100% - 48px); margin: 0 24px 10px;
+  padding: 14px; background: var(--ph-purple); color: white; border: none;
+  border-radius: 10px; font-size: 0.9rem; font-weight: 700;
+  font-family: 'Inter', sans-serif; cursor: pointer; transition: background 0.15s;
 }
 .phantom-btn-primary:hover { background: #8030EE; }
 .phantom-btn-ghost {
-  display: block;
-  width: calc(100% - 48px);
-  margin: 0 24px 24px;
-  padding: 13px;
-  background: transparent;
-  color: var(--ph-sub);
-  border: 1px solid var(--ph-border);
-  border-radius: var(--ph-radius-sm);
-  font-size: 0.88rem;
-  font-weight: 600;
-  font-family: 'Inter', sans-serif;
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  display: block; width: calc(100% - 48px); margin: 0 24px 24px;
+  padding: 13px; background: transparent; color: var(--ph-sub);
+  border: 1px solid var(--ph-border); border-radius: 10px;
+  font-size: 0.88rem; font-weight: 600; font-family: 'Inter', sans-serif;
+  cursor: pointer; transition: background 0.15s, color 0.15s;
 }
 .phantom-btn-ghost:hover { background: rgba(255,255,255,0.05); color: white; }
 
-/* Portfolio header */
-.phantom-portfolio-header {
-  text-align: center;
-  padding: 28px 24px 20px;
-  border-bottom: 1px solid var(--ph-border);
-}
-.phantom-portfolio-total {
-  font-size: 2rem;
-  font-weight: 800;
-  color: var(--ph-text);
-  margin-bottom: 4px;
-}
-.phantom-portfolio-label {
-  font-size: 0.78rem;
-  color: var(--ph-sub);
-  margin-bottom: 12px;
-}
+.phantom-portfolio-header { text-align: center; padding: 28px 24px 20px; border-bottom: 1px solid var(--ph-border); }
+.phantom-portfolio-total { font-size: 2rem; font-weight: 800; color: white; margin-bottom: 4px; }
+.phantom-portfolio-label { font-size: 0.78rem; color: var(--ph-sub); margin-bottom: 12px; }
 .phantom-addr-pill {
-  display: inline-block;
-  background: var(--ph-surface);
-  border: 1px solid var(--ph-border);
-  border-radius: 20px;
-  padding: 4px 14px;
-  font-size: 0.7rem;
-  color: var(--ph-sub);
-  word-break: break-all;
+  display: inline-block; background: var(--ph-surface);
+  border: 1px solid var(--ph-border); border-radius: 20px;
+  padding: 4px 14px; font-size: 0.7rem; color: var(--ph-sub); word-break: break-all;
 }
-
-/* Token list in modal */
 .phantom-token-list { padding: 16px 0 0; }
-.phantom-token-list-label {
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--ph-muted);
-  padding: 0 24px 8px;
-  letter-spacing: 0.5px;
-}
-.phantom-tl-row {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 12px 24px;
-  transition: background 0.15s;
-}
+.phantom-token-list-label { font-size: 0.72rem; font-weight: 600; color: var(--ph-muted); padding: 0 24px 8px; letter-spacing: 0.5px; }
+.phantom-tl-row { display: flex; align-items: center; gap: 14px; padding: 12px 24px; transition: background 0.15s; }
 .phantom-tl-row:hover { background: rgba(255,255,255,0.03); }
 .phantom-tl-row-last { margin-bottom: 16px; }
-.phantom-tl-icon {
-  width: 40px; height: 40px;
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1rem; flex-shrink: 0;
-}
+.phantom-tl-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+.phantom-icon-staked { background: linear-gradient(135deg, #9945FF, #7B2FBE); }
+.phantom-icon-wallet { background: linear-gradient(135deg, #14F195, #0FAE6E); color: #06101F; }
 .phantom-tl-info { flex: 1; }
-.phantom-tl-name {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--ph-text);
-  margin-bottom: 2px;
-}
+.phantom-tl-name { font-size: 0.9rem; font-weight: 600; color: white; margin-bottom: 2px; }
 .phantom-tl-net { font-size: 0.73rem; color: var(--ph-sub); }
 .phantom-tl-right { text-align: right; }
-.phantom-tl-amount {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--ph-text);
-  margin-bottom: 2px;
-}
+.phantom-tl-amount { font-size: 0.9rem; font-weight: 600; color: white; margin-bottom: 2px; }
 .phantom-tl-usd { font-size: 0.73rem; color: var(--ph-sub); }
-
-/* Rewards card */
-.phantom-rewards-card {
-  margin: 0 24px 20px;
-  background: var(--ph-surface);
-  border-radius: var(--ph-radius-sm);
-  border: 1px solid var(--ph-border);
-  padding: 16px;
-}
-.phantom-rewards-title {
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--ph-sub);
-  margin-bottom: 14px;
-}
-.phantom-rewards-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.phantom-rewards-divider {
-  border: none;
-  border-top: 1px solid var(--ph-border);
-  margin: 12px 0;
-}
-.phantom-rewards-tier { font-size: 0.78rem; font-weight: 600; color: var(--ph-text); margin-bottom: 2px; }
+.phantom-rewards-card { margin: 0 24px 20px; background: var(--ph-surface); border-radius: 10px; border: 1px solid var(--ph-border); padding: 16px; }
+.phantom-rewards-title { font-size: 0.78rem; font-weight: 600; color: var(--ph-sub); margin-bottom: 14px; }
+.phantom-rewards-row { display: flex; justify-content: space-between; align-items: center; }
+.phantom-rewards-divider { border: none; border-top: 1px solid var(--ph-border); margin: 12px 0; }
+.phantom-rewards-tier { font-size: 0.78rem; font-weight: 600; color: white; margin-bottom: 2px; }
 .phantom-rewards-rate { font-size: 0.72rem; color: var(--ph-sub); }
 .phantom-rewards-right { text-align: right; }
 .phantom-rewards-val { font-size: 0.88rem; font-weight: 700; color: var(--ph-green); margin-bottom: 2px; }
@@ -1125,32 +1120,95 @@ footer{background:var(--dark);padding:60px 24px 40px;text-align:center;border-to
 
         <button class="stake-btn-main" onclick="openStakeModal()">STAKE $CHUMP NOW</button>
 
-        <!-- BALANCE BAR — Phantom style -->
-        <div class="phantom-wallet-card">
-          <div class="phantom-wallet-header">
-            <div class="phantom-wallet-label">My Balances</div>
-            <button class="phantom-refresh-btn" onclick="showConnectedBalance()">↻ Refresh</button>
+        <!-- WALLET CARD — Phantom style matching screenshot -->
+        <div class="pw-card">
+          <!-- Purple hero -->
+          <div class="pw-hero">
+            <div class="pw-avatar" id="pwAvatar">★</div>
+            <div class="pw-username" id="pwUsername">ChumHolder</div>
+            <div class="pw-addr" id="pwAddr">0x…</div>
+            <div class="pw-total-label">TOTAL BALANCE</div>
+            <div class="pw-total-val" id="pwTotalVal">—</div>
+            <div class="pw-connected-dot">
+              <span class="pw-dot"></span> Connected to $CHUMP
+            </div>
+            <!-- Action buttons -->
+            <div class="pw-actions">
+              <button class="pw-action-btn" onclick="openStakeModal()">
+                <div class="pw-action-icon">↑</div>
+                <div class="pw-action-lbl">Send</div>
+              </button>
+              <button class="pw-action-btn" onclick="openStakeModal()">
+                <div class="pw-action-icon">↓</div>
+                <div class="pw-action-lbl">Receive</div>
+              </button>
+              <button class="pw-action-btn" onclick="openStakeModal()">
+                <div class="pw-action-icon">⇌</div>
+                <div class="pw-action-lbl">Swap</div>
+              </button>
+              <button class="pw-action-btn" onclick="showConnectedBalance()">
+                <div class="pw-action-icon">›</div>
+                <div class="pw-action-lbl">More</div>
+              </button>
+            </div>
           </div>
-          <div class="phantom-token-row">
-            <div class="phantom-token-icon phantom-icon-staked">⚡</div>
-            <div class="phantom-token-info">
-              <div class="phantom-token-name">Staked $CHUMP</div>
-              <div class="phantom-token-net">Staking Pool</div>
+
+          <!-- Token list -->
+          <div class="pw-token-section">
+            <div class="pw-section-label">TOKEN BALANCES</div>
+
+            <!-- $CHUMP row -->
+            <div class="pw-token-row">
+              <div class="pw-token-avatar pw-chump-avatar">$C</div>
+              <div class="pw-token-info">
+                <div class="pw-token-name">$CHUMP</div>
+                <div class="pw-token-sub">Available balance</div>
+              </div>
+              <div class="pw-token-right">
+                <div class="pw-token-amount" id="walletBalDisplay">—</div>
+                <div class="pw-token-usd" id="walletUsdDisplay">—</div>
+              </div>
             </div>
-            <div class="phantom-token-right">
-              <div class="phantom-token-amount" id="stakedBalDisplay">— CHUMP</div>
-              <div class="phantom-token-usd" id="stakedUsdDisplay">—</div>
+
+            <!-- Staked $CHUMP row -->
+            <div class="pw-token-row">
+              <div class="pw-token-avatar pw-staked-avatar">$C</div>
+              <div class="pw-token-info">
+                <div class="pw-token-name">Staked $CHUMP</div>
+                <div class="pw-token-sub">Locked in vault</div>
+                <div class="pw-apy-badge">Earning 30% APY</div>
+              </div>
+              <div class="pw-token-right">
+                <div class="pw-token-amount" id="stakedBalDisplay">—</div>
+                <div class="pw-token-usd" id="stakedUsdDisplay">—</div>
+              </div>
             </div>
           </div>
-          <div class="phantom-token-row phantom-token-row-last">
-            <div class="phantom-token-icon phantom-icon-wallet">◎</div>
-            <div class="phantom-token-info">
-              <div class="phantom-token-name">$CHUMP</div>
-              <div class="phantom-token-net">Wallet Balance</div>
+
+          <!-- Rewards breakdown -->
+          <div class="pw-rewards-section">
+            <div class="pw-section-label">REWARDS BREAKDOWN</div>
+            <div class="pw-reward-row">
+              <div class="pw-reward-icon">↓</div>
+              <div class="pw-reward-info">
+                <div class="pw-reward-tier">Months 1–6</div>
+                <div class="pw-reward-rate">0.1% daily</div>
+              </div>
+              <div class="pw-reward-right">
+                <div class="pw-reward-val" id="tier1Daily">0 $CHUMP</div>
+                <div class="pw-reward-usd" id="tier1DailyUsd">—</div>
+              </div>
             </div>
-            <div class="phantom-token-right">
-              <div class="phantom-token-amount" id="walletBalDisplay">— CHUMP</div>
-              <div class="phantom-token-usd" id="walletUsdDisplay">—</div>
+            <div class="pw-reward-row">
+              <div class="pw-reward-icon">↓</div>
+              <div class="pw-reward-info">
+                <div class="pw-reward-tier">Months 7–12</div>
+                <div class="pw-reward-rate">0.25% daily</div>
+              </div>
+              <div class="pw-reward-right">
+                <div class="pw-reward-val" id="tier2Daily">0 $CHUMP</div>
+                <div class="pw-reward-usd" id="tier2DailyUsd">—</div>
+              </div>
             </div>
           </div>
         </div>
@@ -1379,15 +1437,30 @@ function updateBalDisplay(){
 
   // Staked balance row
   if(document.getElementById('stakedBalDisplay'))
-    document.getElementById('stakedBalDisplay').textContent = fmtTok(bal);
+    document.getElementById('stakedBalDisplay').textContent = bal > 0 ? bal.toLocaleString() : '—';
   if(document.getElementById('stakedUsdDisplay'))
     document.getElementById('stakedUsdDisplay').textContent = fmtUsd(bal);
 
   // Wallet row (0 — can't query on-chain without RPC)
   if(document.getElementById('walletBalDisplay'))
-    document.getElementById('walletBalDisplay').textContent = '— CHUMP';
+    document.getElementById('walletBalDisplay').textContent = '—';
   if(document.getElementById('walletUsdDisplay'))
     document.getElementById('walletUsdDisplay').textContent = '—';
+
+  // Hero total
+  const totalUsd = chumpUsdPrice > 0 && bal > 0
+    ? (bal * chumpUsdPrice).toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2})
+    : '—';
+  if(document.getElementById('pwTotalVal'))
+    document.getElementById('pwTotalVal').textContent = totalUsd;
+
+  // Rewards rows (tier1/tier2 in the card)
+  const tier1 = bal * 0.001;
+  const tier2 = bal * 0.0025;
+  if(document.getElementById('tier1Daily')) document.getElementById('tier1Daily').textContent = tier1 > 0 ? tier1.toLocaleString(undefined,{maximumFractionDigits:2})+' $CHUMP' : '0 $CHUMP';
+  if(document.getElementById('tier1DailyUsd')) document.getElementById('tier1DailyUsd').textContent = fmtUsd(tier1);
+  if(document.getElementById('tier2Daily')) document.getElementById('tier2Daily').textContent = tier2 > 0 ? tier2.toLocaleString(undefined,{maximumFractionDigits:2})+' $CHUMP' : '0 $CHUMP';
+  if(document.getElementById('tier2DailyUsd')) document.getElementById('tier2DailyUsd').textContent = fmtUsd(tier2);
 }
 
 /* ── WALLET GATE ── */
@@ -1434,6 +1507,10 @@ function showStakeConnected(addr, username){
   document.getElementById('stakeConnected').style.display = '';
   const label = username ? username + ' · ' + addr.slice(0,6) + '…' + addr.slice(-4) : addr.slice(0,6) + '…' + addr.slice(-4);
   document.getElementById('connectedAddrShort').textContent = label;
+  // Populate pw-hero
+  if(document.getElementById('pwUsername')) document.getElementById('pwUsername').textContent = username || 'ChumHolder';
+  if(document.getElementById('pwAddr')) document.getElementById('pwAddr').textContent = addr.slice(0,8)+'…'+addr.slice(-6);
+  if(document.getElementById('pwAvatar')) document.getElementById('pwAvatar').textContent = (username||'C')[0].toUpperCase();
   updateBalDisplay();
 }
 
