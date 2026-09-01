@@ -1253,7 +1253,11 @@ footer{background:var(--dark);padding:60px 24px 40px;text-align:center;border-to
         <strong>1.</strong> Open your wallet (MetaMask or compatible).<br>
         <strong>2.</strong> Send exactly <strong id="modalAmountInstr">the amount above</strong> $CHUMP to the vault address.<br>
         <strong>3.</strong> Use the Robinhood Chain network.<br>
-        <strong>4.</strong> Click confirm below once you've sent — admin will verify and credit your balance.
+        <strong>4.</strong> Paste your transaction hash below, then click confirm.
+      </div>
+      <div style="margin-bottom:14px;">
+        <label style="display:block;font-family:var(--mono);font-size:0.6rem;letter-spacing:3px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">Transaction Hash (optional but recommended)</label>
+        <input id="stakeTxHash" class="stake-input" style="width:100%;font-size:0.65rem;" placeholder="0x… paste your tx hash here" />
       </div>
       <button class="modal-confirm-btn" onclick="confirmStake()">✓ I'VE SENT THE TOKENS</button>
       <div class="modal-warning">⚠ Only send $CHUMP tokens on Robinhood Chain to this address.<br>Sending wrong tokens or using wrong network may result in permanent loss.</div>
@@ -1378,6 +1382,7 @@ document.addEventListener('click',function(e){
 /* ── STAKING LOGIC ── */
 const VAULT = '0x960172ab0A5a6F6550E6A90200B5c19460592628';
 let chumpUsdPrice = 0;
+let pendingStakeAmt = 0; // holds stake amount from modal open → confirm
 
 async function fetchIndexChumpPrice(){
   // 1. Check if admin has set a manual price
@@ -1567,6 +1572,7 @@ function openStakeModal(){
     return;
   }
   if(inp) inp.style.borderColor = '';
+  pendingStakeAmt = amt; // ← save for confirmStake()
   // Wallet already connected via gate — go straight to deposit instructions
   document.getElementById('stkStep1').style.display = 'none';
   document.getElementById('stkStep2').style.display = '';
@@ -1638,10 +1644,19 @@ function overlayClose(e, id){
 }
 
 function confirmStake(){
-  const amt = parseFloat(document.getElementById('stakeAmount').value) || 0;
+  const amt = pendingStakeAmt || parseFloat(document.getElementById('stakeAmount').value) || 0;
   const addr = (localStorage.getItem('chumpConnectedAddr') || '').toLowerCase();
+  const txHash = (document.getElementById('stakeTxHash') ? document.getElementById('stakeTxHash').value.trim() : '') || ('0x' + '0'.repeat(64));
 
-  // Save a pending deposit record for admin to review
+  if(!amt || amt <= 0){
+    alert('No stake amount found. Please close and try again.');
+    return;
+  }
+  if(!addr){
+    alert('No wallet address found. Please disconnect and reconnect.');
+    return;
+  }
+
   const STORE_KEY = 'chump_deposits';
   let deposits = [];
   try { deposits = JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); } catch(e){}
@@ -1652,7 +1667,7 @@ function confirmStake(){
     name: username,
     wallet: addr,
     eth: 0,
-    txhash: '0x' + '0'.repeat(64),
+    txhash: txHash,
     status: 'pending',
     chumpBalance: amt,
     submittedAt: new Date().toISOString(),
@@ -1660,12 +1675,12 @@ function confirmStake(){
   });
   localStorage.setItem(STORE_KEY, JSON.stringify(deposits));
 
-  // Show pending notification to admin badge
+  pendingStakeAmt = 0; // reset
   updateBalDisplay();
   closeModal('stakeModalOverlay');
   document.getElementById('stakeAmount').value = '';
+  if(document.getElementById('stakeTxHash')) document.getElementById('stakeTxHash').value = '';
 
-  // Show success flash
   const btn = document.querySelector('.stake-btn-main');
   const orig = btn.textContent;
   btn.textContent = '✓ REQUEST SUBMITTED — PENDING ADMIN APPROVAL';
