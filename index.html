@@ -989,9 +989,16 @@ function setMax(){
 }
 
 function openStakeModal(){
-  const amt = parseFloat(document.getElementById('stakeAmount').value);
-  if(!amt || amt <= 0){ alert('Please enter the amount of $CHUMP you want to stake.'); return; }
-  // Wallet already connected via gate — skip to step 2
+  const inp = document.getElementById('stakeAmount');
+  const amt = inp ? parseFloat(inp.value) : 0;
+  if(!amt || amt <= 0){
+    // Show inline error on the input
+    if(inp){ inp.style.borderColor='var(--crimson)'; inp.placeholder='Enter an amount first!'; inp.focus(); }
+    setTimeout(()=>{ if(inp){ inp.style.borderColor=''; inp.placeholder='Enter $CHUMP amount…'; } }, 2500);
+    return;
+  }
+  if(inp) inp.style.borderColor = '';
+  // Wallet already connected via gate — go straight to deposit instructions
   document.getElementById('stkStep1').style.display = 'none';
   document.getElementById('stkStep2').style.display = '';
   document.getElementById('modalAmountDisplay').textContent = amt.toLocaleString();
