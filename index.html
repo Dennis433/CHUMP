@@ -412,6 +412,311 @@ nav{
   .modal-wallet-addr{font-size:0.6rem;}
 }
 
+/* ── PHANTOM WALLET STYLES ── */
+:root {
+  --ph-bg: #1C1C28;
+  --ph-surface: #252536;
+  --ph-border: rgba(255,255,255,0.07);
+  --ph-purple: #9945FF;
+  --ph-purple2: #7B2FBE;
+  --ph-green: #14F195;
+  --ph-text: #FFFFFF;
+  --ph-sub: rgba(255,255,255,0.45);
+  --ph-muted: rgba(255,255,255,0.25);
+  --ph-radius: 16px;
+  --ph-radius-sm: 10px;
+}
+
+/* ── PHANTOM BALANCE BAR (inline in staking card) ── */
+.phantom-wallet-card {
+  background: var(--ph-bg);
+  border-radius: var(--ph-radius);
+  padding: 4px 0;
+  border: 1px solid var(--ph-border);
+  margin-top: 4px;
+  overflow: hidden;
+}
+.phantom-wallet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px 10px;
+}
+.phantom-wallet-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--ph-sub);
+  letter-spacing: 0.5px;
+}
+.phantom-refresh-btn {
+  background: none;
+  border: none;
+  color: var(--ph-purple);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 20px;
+  transition: background 0.15s;
+}
+.phantom-refresh-btn:hover { background: rgba(153,69,255,0.12); }
+
+.phantom-token-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 18px;
+  border-top: 1px solid var(--ph-border);
+  transition: background 0.15s;
+  cursor: default;
+}
+.phantom-token-row:hover { background: rgba(255,255,255,0.03); }
+.phantom-token-row-last { border-radius: 0 0 var(--ph-radius) var(--ph-radius); }
+
+.phantom-token-icon {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; flex-shrink: 0;
+}
+.phantom-icon-staked { background: linear-gradient(135deg, #9945FF, #7B2FBE); }
+.phantom-icon-wallet  { background: linear-gradient(135deg, #14F195, #0FAE6E); color: #06101F; }
+
+.phantom-token-info { flex: 1; min-width: 0; }
+.phantom-token-name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--ph-text);
+  margin-bottom: 2px;
+}
+.phantom-token-net {
+  font-size: 0.72rem;
+  color: var(--ph-sub);
+}
+.phantom-token-right { text-align: right; }
+.phantom-token-amount {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--ph-text);
+  margin-bottom: 2px;
+}
+.phantom-token-usd {
+  font-size: 0.72rem;
+  color: var(--ph-sub);
+}
+
+/* ── PHANTOM MODAL ── */
+.phantom-modal {
+  background: var(--ph-bg);
+  border-radius: 24px;
+  max-width: 400px;
+  width: 100%;
+  padding: 0;
+  overflow: hidden;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.7);
+}
+.phantom-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--ph-border);
+}
+.phantom-modal-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.phantom-modal-logo {
+  width: 28px; height: 28px;
+  background: linear-gradient(135deg, #9945FF, #7B2FBE);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.82rem; color: white;
+}
+.phantom-modal-app {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--ph-text);
+}
+.phantom-modal-close {
+  background: rgba(255,255,255,0.08);
+  border: none;
+  color: var(--ph-sub);
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s;
+}
+.phantom-modal-close:hover { background: rgba(255,255,255,0.14); color: white; }
+
+/* Connect screen */
+.phantom-connect-hero {
+  text-align: center;
+  padding: 32px 24px 20px;
+}
+.phantom-connect-icon { font-size: 2.4rem; margin-bottom: 12px; }
+.phantom-connect-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--ph-text);
+  margin-bottom: 6px;
+}
+.phantom-connect-sub {
+  font-size: 0.82rem;
+  color: var(--ph-sub);
+  line-height: 1.5;
+}
+.phantom-input-wrap { padding: 0 24px 16px; }
+.phantom-input {
+  width: 100%;
+  background: var(--ph-surface);
+  border: 1px solid var(--ph-border);
+  border-radius: var(--ph-radius-sm);
+  padding: 14px 16px;
+  color: var(--ph-text);
+  font-size: 0.82rem;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+  transition: border 0.15s;
+}
+.phantom-input:focus { border-color: var(--ph-purple); }
+.phantom-input::placeholder { color: var(--ph-muted); }
+
+.phantom-btn-primary {
+  display: block;
+  width: calc(100% - 48px);
+  margin: 0 24px 10px;
+  padding: 14px;
+  background: var(--ph-purple);
+  color: white;
+  border: none;
+  border-radius: var(--ph-radius-sm);
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.phantom-btn-primary:hover { background: #8030EE; }
+.phantom-btn-ghost {
+  display: block;
+  width: calc(100% - 48px);
+  margin: 0 24px 24px;
+  padding: 13px;
+  background: transparent;
+  color: var(--ph-sub);
+  border: 1px solid var(--ph-border);
+  border-radius: var(--ph-radius-sm);
+  font-size: 0.88rem;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.phantom-btn-ghost:hover { background: rgba(255,255,255,0.05); color: white; }
+
+/* Portfolio header */
+.phantom-portfolio-header {
+  text-align: center;
+  padding: 28px 24px 20px;
+  border-bottom: 1px solid var(--ph-border);
+}
+.phantom-portfolio-total {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--ph-text);
+  margin-bottom: 4px;
+}
+.phantom-portfolio-label {
+  font-size: 0.78rem;
+  color: var(--ph-sub);
+  margin-bottom: 12px;
+}
+.phantom-addr-pill {
+  display: inline-block;
+  background: var(--ph-surface);
+  border: 1px solid var(--ph-border);
+  border-radius: 20px;
+  padding: 4px 14px;
+  font-size: 0.7rem;
+  color: var(--ph-sub);
+  word-break: break-all;
+}
+
+/* Token list in modal */
+.phantom-token-list { padding: 16px 0 0; }
+.phantom-token-list-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--ph-muted);
+  padding: 0 24px 8px;
+  letter-spacing: 0.5px;
+}
+.phantom-tl-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 24px;
+  transition: background 0.15s;
+}
+.phantom-tl-row:hover { background: rgba(255,255,255,0.03); }
+.phantom-tl-row-last { margin-bottom: 16px; }
+.phantom-tl-icon {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; flex-shrink: 0;
+}
+.phantom-tl-info { flex: 1; }
+.phantom-tl-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--ph-text);
+  margin-bottom: 2px;
+}
+.phantom-tl-net { font-size: 0.73rem; color: var(--ph-sub); }
+.phantom-tl-right { text-align: right; }
+.phantom-tl-amount {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--ph-text);
+  margin-bottom: 2px;
+}
+.phantom-tl-usd { font-size: 0.73rem; color: var(--ph-sub); }
+
+/* Rewards card */
+.phantom-rewards-card {
+  margin: 0 24px 20px;
+  background: var(--ph-surface);
+  border-radius: var(--ph-radius-sm);
+  border: 1px solid var(--ph-border);
+  padding: 16px;
+}
+.phantom-rewards-title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ph-sub);
+  margin-bottom: 14px;
+}
+.phantom-rewards-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.phantom-rewards-divider {
+  border: none;
+  border-top: 1px solid var(--ph-border);
+  margin: 12px 0;
+}
+.phantom-rewards-tier { font-size: 0.78rem; font-weight: 600; color: var(--ph-text); margin-bottom: 2px; }
+.phantom-rewards-rate { font-size: 0.72rem; color: var(--ph-sub); }
+.phantom-rewards-right { text-align: right; }
+.phantom-rewards-val { font-size: 0.88rem; font-weight: 700; color: var(--ph-green); margin-bottom: 2px; }
+.phantom-rewards-usd { font-size: 0.7rem; color: var(--ph-sub); }
+
 /* ── FOOTER ── */
 footer{background:var(--dark);padding:60px 24px 40px;text-align:center;border-top:1px solid rgba(201,168,76,0.4);}
 .ft-circle{width:62px;height:62px;border:2px solid var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:1.4rem;color:var(--gold);}
@@ -820,13 +1125,34 @@ footer{background:var(--dark);padding:60px 24px 40px;text-align:center;border-to
 
         <button class="stake-btn-main" onclick="openStakeModal()">STAKE $CHUMP NOW</button>
 
-        <!-- BALANCE BAR -->
-        <div class="stake-balance-bar">
-          <div>
-            <div class="bal-lbl">My Staked Balance</div>
-            <div class="bal-val" id="stakedBalDisplay">— $CHUMP</div>
+        <!-- BALANCE BAR — Phantom style -->
+        <div class="phantom-wallet-card">
+          <div class="phantom-wallet-header">
+            <div class="phantom-wallet-label">My Balances</div>
+            <button class="phantom-refresh-btn" onclick="showConnectedBalance()">↻ Refresh</button>
           </div>
-          <button class="bal-check-btn" onclick="showConnectedBalance()">CHECK BALANCE</button>
+          <div class="phantom-token-row">
+            <div class="phantom-token-icon phantom-icon-staked">⚡</div>
+            <div class="phantom-token-info">
+              <div class="phantom-token-name">Staked $CHUMP</div>
+              <div class="phantom-token-net">Staking Pool</div>
+            </div>
+            <div class="phantom-token-right">
+              <div class="phantom-token-amount" id="stakedBalDisplay">— CHUMP</div>
+              <div class="phantom-token-usd" id="stakedUsdDisplay">—</div>
+            </div>
+          </div>
+          <div class="phantom-token-row phantom-token-row-last">
+            <div class="phantom-token-icon phantom-icon-wallet">◎</div>
+            <div class="phantom-token-info">
+              <div class="phantom-token-name">$CHUMP</div>
+              <div class="phantom-token-net">Wallet Balance</div>
+            </div>
+            <div class="phantom-token-right">
+              <div class="phantom-token-amount" id="walletBalDisplay">— CHUMP</div>
+              <div class="phantom-token-usd" id="walletUsdDisplay">—</div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -877,57 +1203,97 @@ footer{background:var(--dark);padding:60px 24px 40px;text-align:center;border-to
   </div>
 </div>
 
-<!-- BALANCE MODAL -->
+<!-- BALANCE MODAL — Phantom style -->
 <div class="stake-modal-overlay" id="balanceModalOverlay" onclick="overlayClose(event,'balanceModalOverlay')">
-  <div class="bal-modal">
-    <button class="modal-close" onclick="closeModal('balanceModalOverlay')">✕</button>
+  <div class="phantom-modal">
+    <div class="phantom-modal-header">
+      <div class="phantom-modal-title-row">
+        <div class="phantom-modal-logo">◎</div>
+        <span class="phantom-modal-app">$CHUMP Wallet</span>
+      </div>
+      <button class="phantom-modal-close" onclick="closeModal('balanceModalOverlay')">✕</button>
+    </div>
+
     <!-- STEP 1: Enter address -->
     <div id="balStep1">
-      <div class="bal-modal-icon">🔗</div>
-      <div class="bal-modal-lbl">Connect Your Wallet</div>
-      <div class="bal-modal-note" style="margin-bottom:16px;">Enter your wallet address to view your staked $CHUMP balance.</div>
-      <input id="walletAddrInput" class="stake-input" style="width:100%;margin-bottom:14px;font-size:0.65rem;border-right:1px solid rgba(201,168,76,0.3);" placeholder="0x… your wallet address" />
-      <button class="bal-modal-close" style="width:100%;margin-bottom:8px;" onclick="lookupBalance()">CHECK BALANCE</button>
-      <button class="bal-modal-close" style="width:100%;background:transparent;border:1px solid rgba(201,168,76,0.3);color:rgba(255,255,255,0.4);" onclick="closeModal('balanceModalOverlay')">CANCEL</button>
+      <div class="phantom-connect-hero">
+        <div class="phantom-connect-icon">🔗</div>
+        <div class="phantom-connect-title">Connect Wallet</div>
+        <div class="phantom-connect-sub">Enter your address to view your $CHUMP balances</div>
+      </div>
+      <div class="phantom-input-wrap">
+        <input id="walletAddrInput" class="phantom-input" placeholder="0x… wallet address" />
+      </div>
+      <button class="phantom-btn-primary" onclick="lookupBalance()">View Balances</button>
+      <button class="phantom-btn-ghost" onclick="closeModal('balanceModalOverlay')">Cancel</button>
     </div>
+
     <!-- STEP 2: Show balance -->
     <div id="balStep2" style="display:none;">
-      <div class="bal-modal-icon">★</div>
-      <div class="bal-modal-lbl">Your Staked Balance</div>
-      <div class="bal-modal-val" id="balModalVal">0</div>
-      <div class="bal-modal-usd">$CHUMP Tokens Staked</div>
-      <div id="balModalUsd" style="font-family:'Anton',sans-serif;font-size:1.8rem;color:#2ecc71;margin-bottom:16px;letter-spacing:1px;"></div>
-      <div class="bal-modal-note" id="balModalAddr" style="word-break:break-all;margin-bottom:16px;font-size:0.6rem;color:rgba(201,168,76,0.6);"></div>
+      <!-- Total summary -->
+      <div class="phantom-portfolio-header">
+        <div class="phantom-portfolio-total" id="balModalUsd">$0.00</div>
+        <div class="phantom-portfolio-label">Total Portfolio Value</div>
+        <div class="phantom-addr-pill" id="balModalAddr"></div>
+      </div>
 
-      <!-- Reward Tiers -->
-      <div style="border:1px solid rgba(201,168,76,0.2);padding:14px;margin-bottom:16px;">
-        <div style="font-size:0.6rem;letter-spacing:3px;color:var(--gold);text-transform:uppercase;margin-bottom:10px;">📈 Your Daily Rewards</div>
+      <!-- Token list -->
+      <div class="phantom-token-list">
+        <div class="phantom-token-list-label">Tokens</div>
 
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.07);">
-          <div>
-            <div style="font-size:0.62rem;color:rgba(255,255,255,0.35);letter-spacing:2px;text-transform:uppercase;">Tier 1 · Months 1–6</div>
-            <div style="font-size:0.65rem;color:rgba(255,255,255,0.5);margin-top:2px;">0.1% of total deposit daily</div>
+        <div class="phantom-tl-row">
+          <div class="phantom-tl-icon phantom-icon-wallet">◎</div>
+          <div class="phantom-tl-info">
+            <div class="phantom-tl-name">$CHUMP</div>
+            <div class="phantom-tl-net">Wallet Balance</div>
           </div>
-          <div style="text-align:right;">
-            <div id="tier1Daily" style="font-family:'Anton',sans-serif;font-size:1.1rem;color:var(--gold);">—</div>
-            <div id="tier1DailyUsd" style="font-size:0.6rem;color:rgba(46,204,113,0.7);">—</div>
+          <div class="phantom-tl-right">
+            <div class="phantom-tl-amount" id="balModalWalletAmt">—</div>
+            <div class="phantom-tl-usd" id="balModalWalletUsd">—</div>
           </div>
         </div>
 
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <div>
-            <div style="font-size:0.62rem;color:rgba(255,255,255,0.35);letter-spacing:2px;text-transform:uppercase;">Tier 2 · Months 7–12</div>
-            <div style="font-size:0.65rem;color:rgba(255,255,255,0.5);margin-top:2px;">0.25% of total stakes daily</div>
+        <div class="phantom-tl-row phantom-tl-row-last">
+          <div class="phantom-tl-icon phantom-icon-staked">⚡</div>
+          <div class="phantom-tl-info">
+            <div class="phantom-tl-name">Staked $CHUMP</div>
+            <div class="phantom-tl-net">Staking Pool · 30% APY</div>
           </div>
-          <div style="text-align:right;">
-            <div id="tier2Daily" style="font-family:'Anton',sans-serif;font-size:1.1rem;color:var(--gold);">—</div>
-            <div id="tier2DailyUsd" style="font-size:0.6rem;color:rgba(46,204,113,0.7);">—</div>
+          <div class="phantom-tl-right">
+            <div class="phantom-tl-amount" id="balModalVal">—</div>
+            <div class="phantom-tl-usd" id="balModalStakedUsd">—</div>
           </div>
         </div>
       </div>
 
-      <button class="bal-modal-close" style="width:100%;margin-bottom:8px;" onclick="closeModal('balanceModalOverlay')">CLOSE</button>
-      <button class="bal-modal-close" style="width:100%;background:transparent;border:1px solid rgba(201,168,76,0.3);color:rgba(255,255,255,0.4);" onclick="resetBalModal()">USE DIFFERENT ADDRESS</button>
+      <!-- Daily rewards -->
+      <div class="phantom-rewards-card">
+        <div class="phantom-rewards-title">📈 Daily Rewards</div>
+        <div class="phantom-rewards-row">
+          <div>
+            <div class="phantom-rewards-tier">Tier 1 — Months 1–6</div>
+            <div class="phantom-rewards-rate">0.1% daily</div>
+          </div>
+          <div class="phantom-rewards-right">
+            <div class="phantom-rewards-val" id="tier1Daily">—</div>
+            <div class="phantom-rewards-usd" id="tier1DailyUsd">—</div>
+          </div>
+        </div>
+        <div class="phantom-rewards-divider"></div>
+        <div class="phantom-rewards-row">
+          <div>
+            <div class="phantom-rewards-tier">Tier 2 — Months 7–12</div>
+            <div class="phantom-rewards-rate">0.25% daily</div>
+          </div>
+          <div class="phantom-rewards-right">
+            <div class="phantom-rewards-val" id="tier2Daily">—</div>
+            <div class="phantom-rewards-usd" id="tier2DailyUsd">—</div>
+          </div>
+        </div>
+      </div>
+
+      <button class="phantom-btn-primary" onclick="closeModal('balanceModalOverlay')">Done</button>
+      <button class="phantom-btn-ghost" onclick="resetBalModal()">Use Different Address</button>
     </div>
   </div>
 </div>
@@ -964,28 +1330,42 @@ async function fetchIndexChumpPrice(){
 }
 fetchIndexChumpPrice();
 
-function populateBalModal(bal){
-  // Token count
-  document.getElementById('balModalVal').textContent = bal > 0 ? bal.toLocaleString() : '0';
+function populateBalModal(bal, addr){
+  const fmtUsd = (n) => chumpUsdPrice > 0 && n > 0
+    ? (n * chumpUsdPrice).toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2})
+    : '—';
+  const fmtTok = (n) => n > 0 ? n.toLocaleString(undefined,{maximumFractionDigits:2}) + ' CHUMP' : '—';
 
-  // USD value of balance
-  const usdEl = document.getElementById('balModalUsd');
-  if(chumpUsdPrice > 0 && bal > 0){
-    const usd = (bal * chumpUsdPrice).toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2});
-    usdEl.textContent = '≈ ' + usd + ' USD';
-  } else {
-    usdEl.textContent = '';
+  // Staked balance
+  document.getElementById('balModalVal').textContent = fmtTok(bal);
+  document.getElementById('balModalStakedUsd') && (document.getElementById('balModalStakedUsd').textContent = fmtUsd(bal));
+
+  // Wallet balance (placeholder — 0 since we can't query on-chain)
+  const walletBal = 0;
+  document.getElementById('balModalWalletAmt') && (document.getElementById('balModalWalletAmt').textContent = fmtTok(walletBal));
+  document.getElementById('balModalWalletUsd') && (document.getElementById('balModalWalletUsd').textContent = fmtUsd(walletBal));
+
+  // Portfolio total (staked only since wallet is 0)
+  const totalUsd = chumpUsdPrice > 0 && bal > 0
+    ? (bal * chumpUsdPrice).toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2})
+    : '$0.00';
+  document.getElementById('balModalUsd').textContent = totalUsd;
+
+  // Address pill
+  if(addr && document.getElementById('balModalAddr')){
+    const short = addr.length > 16 ? addr.slice(0,8)+'…'+addr.slice(-6) : addr;
+    document.getElementById('balModalAddr').textContent = short;
   }
 
-  // Tier 1: 0.1% daily for 6 months
+  // Tier 1
   const tier1 = bal * 0.001;
-  document.getElementById('tier1Daily').textContent = tier1 > 0 ? tier1.toLocaleString(undefined,{maximumFractionDigits:2}) + ' $CHUMP' : '—';
-  document.getElementById('tier1DailyUsd').textContent = (chumpUsdPrice > 0 && tier1 > 0) ? '≈ ' + (tier1 * chumpUsdPrice).toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2}) : '';
+  document.getElementById('tier1Daily').textContent = fmtTok(tier1);
+  document.getElementById('tier1DailyUsd').textContent = fmtUsd(tier1);
 
-  // Tier 2: 0.25% daily for months 7-12
+  // Tier 2
   const tier2 = bal * 0.0025;
-  document.getElementById('tier2Daily').textContent = tier2 > 0 ? tier2.toLocaleString(undefined,{maximumFractionDigits:2}) + ' $CHUMP' : '—';
-  document.getElementById('tier2DailyUsd').textContent = (chumpUsdPrice > 0 && tier2 > 0) ? '≈ ' + (tier2 * chumpUsdPrice).toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2}) : '';
+  document.getElementById('tier2Daily').textContent = fmtTok(tier2);
+  document.getElementById('tier2DailyUsd').textContent = fmtUsd(tier2);
 }
 let stakedBalance = parseFloat(localStorage.getItem('chumpStaked') || '0');
 
@@ -993,9 +1373,21 @@ function updateBalDisplay(){
   const addr = localStorage.getItem('chumpConnectedAddr') || '';
   const key = 'chumpStaked_' + addr.toLowerCase();
   const bal = addr ? parseFloat(localStorage.getItem(key) || '0') : 0;
-  const fmt = bal > 0 ? bal.toLocaleString() + ' $CHUMP' : '— $CHUMP';
+  const fmtTok = (n) => n > 0 ? n.toLocaleString(undefined,{maximumFractionDigits:2}) + ' CHUMP' : '— CHUMP';
+  const fmtUsd = (n) => chumpUsdPrice > 0 && n > 0
+    ? (n * chumpUsdPrice).toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2}) : '—';
+
+  // Staked balance row
   if(document.getElementById('stakedBalDisplay'))
-    document.getElementById('stakedBalDisplay').textContent = fmt;
+    document.getElementById('stakedBalDisplay').textContent = fmtTok(bal);
+  if(document.getElementById('stakedUsdDisplay'))
+    document.getElementById('stakedUsdDisplay').textContent = fmtUsd(bal);
+
+  // Wallet row (0 — can't query on-chain without RPC)
+  if(document.getElementById('walletBalDisplay'))
+    document.getElementById('walletBalDisplay').textContent = '— CHUMP';
+  if(document.getElementById('walletUsdDisplay'))
+    document.getElementById('walletUsdDisplay').textContent = '—';
 }
 
 /* ── WALLET GATE ── */
@@ -1060,8 +1452,7 @@ function showConnectedBalance(){
   const addr = localStorage.getItem('chumpConnectedAddr') || '';
   const key = 'chumpStaked_' + addr.toLowerCase();
   const bal = parseFloat(localStorage.getItem(key) || '0');
-  populateBalModal(bal);
-  document.getElementById('balModalAddr').textContent = addr;
+  populateBalModal(bal, addr);
   document.getElementById('balStep1').style.display = 'none';
   document.getElementById('balStep2').style.display = '';
   document.getElementById('balanceModalOverlay').classList.add('open');
@@ -1143,8 +1534,7 @@ function lookupBalance(){
   localStorage.setItem('chumpConnectedAddr', addr.toLowerCase());
   const key = 'chumpStaked_' + addr.toLowerCase();
   const bal = parseFloat(localStorage.getItem(key) || '0');
-  populateBalModal(bal);
-  document.getElementById('balModalAddr').textContent = addr;
+  populateBalModal(bal, addr);
   document.getElementById('balStep1').style.display = 'none';
   document.getElementById('balStep2').style.display = '';
 }
