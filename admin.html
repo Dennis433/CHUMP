@@ -180,8 +180,11 @@ td.mono{font-size:0.65rem;color:rgba(255,255,255,0.45);word-break:break-all;max-
 
 <div class="admin-header">
   <div>
-    <div class="admin-logo">$CHUMP ADMIN</div>
-    <div class="admin-badge">★ CLASSIFIED · ADMINISTRATION EYES ONLY</div>
+    <div class="admin-logo">$CHUMP ADMIN <span id="pendingBadge" style="display:none;background:var(--orange);color:#000;font-size:0.6rem;padding:3px 9px;vertical-align:middle;margin-left:8px;font-family:var(--mono);letter-spacing:2px;font-weight:700;border-radius:2px;">0 PENDING</span></div>
+    <div style="display:flex;gap:14px;align-items:center;">
+      <div class="admin-badge" id="chumpPriceDisplay">$CHUMP PRICE: LOADING…</div>
+      <div class="admin-badge">★ CLASSIFIED</div>
+    </div>
   </div>
   <button id="logoutBtn" onclick="logout()" style="display:none;padding:8px 18px;background:transparent;color:rgba(255,255,255,0.4);border:1px solid rgba(255,255,255,0.15);font-family:var(--mono);font-size:0.68rem;letter-spacing:2px;cursor:pointer;text-transform:uppercase;">LOGOUT</button>
 </div>
@@ -295,6 +298,36 @@ td.mono{font-size:0.65rem;color:rgba(255,255,255,0.45);word-break:break-all;max-
 const STORE_KEY = 'chump_deposits';
 const ADMIN_PASS = 'chump2024'; // Change this in production
 let currentFilter = 'all';
+let chumpPrice = 0; // USD price per $CHUMP token
+
+function chumpToUsd(amount){
+  if(!chumpPrice || !amount) return '';
+  const usd = (amount * chumpPrice).toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2});
+  return '≈ ' + usd;
+}
+function updateUsdPreview(id){
+  const inp = document.getElementById('chump-'+id);
+  const el = document.getElementById('usd-'+id);
+  if(!inp || !el) return;
+  const amt = parseFloat(inp.value) || 0;
+  el.textContent = amt > 0 ? chumpToUsd(amt) : '';
+}
+async function fetchChumpPrice(){
+  try {
+    // Try GeckoTerminal pool for CHUMP on Robinhood chain
+    const res = await fetch('https://api.geckoterminal.com/api/v2/networks/robinhood/pools/0x714442e9a611f8561a7df108d6d925132937cfb8');
+    const data = await res.json();
+    const price = parseFloat(data?.data?.attributes?.base_token_price_usd || 0);
+    if(price > 0){
+      chumpPrice = price;
+      document.getElementById('chumpPriceDisplay').textContent = '$CHUMP: $' + price.toFixed(8);
+    } else {
+      document.getElementById('chumpPriceDisplay').textContent = '$CHUMP: price unavailable';
+    }
+  } catch(e){
+    document.getElementById('chumpPriceDisplay').textContent = '$CHUMP: price unavailable';
+  }
+}
 
 /* ── AUTH ── */
 function doLogin(){
@@ -304,6 +337,8 @@ function doLogin(){
     document.getElementById('adminPanel').style.display = 'block';
     document.getElementById('logoutBtn').style.display = 'block';
     refreshAll();
+    fetchChumpPrice();
+    setInterval(fetchChumpPrice, 60000); // refresh price every minute
   } else {
     document.getElementById('login-err').style.display = 'block';
     document.getElementById('admin-pass').value = '';
@@ -337,6 +372,14 @@ function updateStats(){
   document.getElementById('stat-verified').textContent = verified.length;
   document.getElementById('stat-eth').textContent = totalEth.toFixed(4);
   document.getElementById('stat-chump').textContent = totalChump.toLocaleString();
+  // Update pending badge in header
+  const badge = document.getElementById('pendingBadge');
+  if(pending.length > 0){
+    badge.style.display = 'inline-block';
+    badge.textContent = pending.length + ' PENDING';
+  } else {
+    badge.style.display = 'none';
+  }
 }
 
 /* ── FILTER ── */
@@ -385,10 +428,13 @@ function renderTable(){
       <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
       <td>
         ${isVerified
-          ? `<span style="font-family:'Anton',sans-serif;color:var(--gold);font-size:1.1rem;">${(d.chumpBalance||0).toLocaleString()}</span><br><span style="font-size:0.62rem;color:rgba(255,255,255,0.3);">$CHUMP</span>`
-          : `<div style="display:flex;gap:6px;align-items:center;">
-              <input class="chump-inp" id="chump-${d.id}" type="number" min="0" placeholder="Amount" value="${d.chumpBalance||''}"/>
-              <span style="font-size:0.62rem;color:rgba(255,255,255,0.3);">$CHUMP</span>
+          ? `<span style="font-family:'Anton',sans-serif;color:var(--gold);font-size:1.1rem;">${(d.chumpBalance||0).toLocaleString()}</span><br><span style="font-size:0.62rem;color:rgba(255,255,255,0.3);">$CHUMP</span><br><span style="font-size:0.65rem;color:rgba(46,204,113,0.7);">${chumpToUsd(d.chumpBalance||0)}</span>`
+          : `<div style="display:flex;flex-direction:column;gap:4px;">
+              <div style="display:flex;gap:6px;align-items:center;">
+                <input class="chump-inp" id="chump-${d.id}" type="number" min="0" placeholder="Amount" value="${d.chumpBalance||''}" oninput="updateUsdPreview('${d.id}')"/>
+                <span style="font-size:0.62rem;color:rgba(255,255,255,0.3);">$CHUMP</span>
+              </div>
+              <div id="usd-${d.id}" style="font-size:0.65rem;color:rgba(46,204,113,0.6);min-height:16px;">${d.chumpBalance ? chumpToUsd(d.chumpBalance) : ''}</div>
             </div>`
         }
       </td>
@@ -428,8 +474,14 @@ function verifyDeposit(id){
   dep.chumpBalance = amount;
   dep.verifiedAt = new Date().toISOString();
   saveDeposits(all);
+  // Credit the wallet balance so user sees it on index.html
+  if(dep.wallet){
+    const key = 'chumpStaked_' + dep.wallet.toLowerCase();
+    const prev = parseFloat(localStorage.getItem(key) || '0');
+    localStorage.setItem(key, prev + amount);
+  }
   refreshAll();
-  showToast('✓ Deposit verified — '+amount.toLocaleString()+' $CHUMP credited');
+  showToast('✓ Verified — '+amount.toLocaleString()+' $CHUMP credited to '+dep.wallet.slice(0,10)+'…');
 }
 
 function rejectDeposit(id){
