@@ -274,8 +274,30 @@ td.mono{font-size:0.65rem;color:rgba(255,255,255,0.45);word-break:break-all;max-
   <!-- Deposits Table -->
   <div class="section-hd">
     <h2>DEPOSIT QUEUE</h2>
-    <button onclick="refreshAll()" style="padding:8px 18px;background:transparent;color:var(--gold);border:1px solid var(--gold);font-family:var(--mono);font-size:0.68rem;letter-spacing:2px;cursor:pointer;text-transform:uppercase;">↻ REFRESH</button>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <div id="liveStatusDot" style="width:8px;height:8px;border-radius:50%;background:#2ecc71;box-shadow:0 0 6px #2ecc71;"></div>
+      <span id="liveStatusLabel" style="font-family:var(--mono);font-size:0.62rem;color:rgba(255,255,255,0.35);letter-spacing:1px;">LIVE</span>
+      <button onclick="refreshAll()" style="padding:8px 18px;background:transparent;color:var(--gold);border:1px solid var(--gold);font-family:var(--mono);font-size:0.68rem;letter-spacing:2px;cursor:pointer;text-transform:uppercase;">↻ REFRESH</button>
+    </div>
   </div>
+
+  <!-- Manual import fallback (for file:// local dev where localStorage isn't shared) -->
+  <details style="margin-bottom:18px;border:1px solid rgba(255,255,255,0.08);padding:14px;">
+    <summary style="font-family:var(--mono);font-size:0.65rem;letter-spacing:2px;color:rgba(255,255,255,0.35);cursor:pointer;text-transform:uppercase;">⚙ Manual Import / Debug</summary>
+    <div style="margin-top:12px;">
+      <div style="font-size:0.68rem;color:rgba(255,255,255,0.4);margin-bottom:8px;line-height:1.6;">
+        If running as local files (<code>file://</code>), index.html and admin.html cannot share localStorage.<br>
+        Export deposits from index.html and paste below, OR host both files on the same server/domain.
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
+        <button onclick="debugShowRaw()" style="padding:8px 14px;background:transparent;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.5);font-family:var(--mono);font-size:0.62rem;letter-spacing:2px;cursor:pointer;">SHOW RAW DATA</button>
+        <button onclick="debugClearAll()" style="padding:8px 14px;background:transparent;border:1px solid var(--crimson);color:var(--crimson);font-family:var(--mono);font-size:0.62rem;letter-spacing:2px;cursor:pointer;">CLEAR ALL DEPOSITS</button>
+      </div>
+      <textarea id="importPasteArea" style="width:100%;height:80px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);color:#fff;font-family:var(--mono);font-size:0.65rem;padding:8px;resize:vertical;" placeholder='Paste JSON from index.html export here…'></textarea>
+      <button onclick="debugImport()" style="margin-top:8px;padding:8px 18px;background:var(--gold);color:var(--navy);font-family:var(--mono);font-size:0.68rem;letter-spacing:2px;cursor:pointer;font-weight:700;border:none;">IMPORT</button>
+      <span id="importStatus" style="margin-left:10px;font-family:var(--mono);font-size:0.65rem;color:#2ecc71;"></span>
+    </div>
+  </details>
 
   <div class="filters">
     <button class="filter-btn active" onclick="setFilter('all',this)">ALL</button>
@@ -368,8 +390,10 @@ function doLogin(){
     document.getElementById('adminPanel').style.display = 'block';
     document.getElementById('logoutBtn').style.display = 'block';
     refreshAll();
+    _lastDepCount = getDeposits().length;
     fetchChumpPrice();
-    setInterval(fetchChumpPrice, 60000); // refresh price every minute
+    setInterval(fetchChumpPrice, 60000);
+    setInterval(pollDeposits, 3000); // check for new deposits every 3s
   } else {
     document.getElementById('login-err').style.display = 'block';
     document.getElementById('admin-pass').value = '';
@@ -595,6 +619,62 @@ function saveStakedBalance(id, wallet){
 function refreshAll(){
   updateStats();
   renderTable();
+}
+
+/* ── LIVE DEPOSIT WATCHER ── */
+let _lastDepCount = 0;
+
+function pollDeposits(){
+  const deps = getDeposits();
+  if(deps.length > _lastDepCount && _lastDepCount > 0){
+    const newest = deps[deps.length - 1];
+    showToast('🔔 NEW DEPOSIT: ' + (newest.name||newest.wallet.slice(0,10)) + ' · ' + Number(newest.chumpBalance).toLocaleString() + ' $CHUMP');
+    refreshAll();
+  } else if(deps.length !== _lastDepCount){
+    refreshAll();
+  }
+  _lastDepCount = deps.length;
+}
+
+// Listen for writes from index.html on same origin
+window.addEventListener('storage', function(e){
+  if(e.key === 'chump_deposits'){
+    pollDeposits();
+  }
+});
+
+/* ── DEBUG / IMPORT ── */
+function debugShowRaw(){
+  const raw = localStorage.getItem('chump_deposits') || '[]';
+  const area = document.getElementById('importPasteArea');
+  area.value = raw;
+  alert('Found ' + JSON.parse(raw).length + ' deposit(s) in this admin localStorage. See textarea below.');
+}
+function debugClearAll(){
+  if(!confirm('Delete ALL deposit records? This cannot be undone.')) return;
+  localStorage.removeItem('chump_deposits');
+  refreshAll();
+  showToast('All deposits cleared.');
+}
+function debugImport(){
+  const raw = document.getElementById('importPasteArea').value.trim();
+  const statusEl = document.getElementById('importStatus');
+  try {
+    const parsed = JSON.parse(raw);
+    if(!Array.isArray(parsed)) throw new Error('Not an array');
+    const existing = getDeposits();
+    const existingIds = new Set(existing.map(d=>d.id));
+    const newOnes = parsed.filter(d=>!existingIds.has(d.id));
+    const merged = [...existing, ...newOnes];
+    localStorage.setItem('chump_deposits', JSON.stringify(merged));
+    refreshAll();
+    statusEl.textContent = '✓ Imported ' + newOnes.length + ' new record(s)';
+    setTimeout(()=>statusEl.textContent='', 4000);
+  } catch(e){
+    statusEl.style.color = 'var(--crimson)';
+    statusEl.textContent = '✗ Invalid JSON';
+    setTimeout(()=>{ statusEl.textContent=''; statusEl.style.color='#2ecc71'; }, 3000);
+  }
 }
 
 /* ── TOAST ── */
