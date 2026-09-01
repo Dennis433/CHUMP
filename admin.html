@@ -174,6 +174,10 @@ td.mono{font-size:0.65rem;color:rgba(255,255,255,0.45);word-break:break-all;max-
   td.mono{max-width:100px;}
   .chump-inp{width:70px;}
 }
+@keyframes pulse {
+  0%,100% { opacity:1; box-shadow:0 0 8px #2ecc71; }
+  50% { opacity:0.4; box-shadow:0 0 2px #2ecc71; }
+}
 </style>
 </head>
 <body>
@@ -272,47 +276,48 @@ td.mono{font-size:0.65rem;color:rgba(255,255,255,0.45);word-break:break-all;max-
   </div>
 
   <!-- Deposits Table -->
-  <div class="section-hd">
-    <h2>DEPOSIT QUEUE</h2>
-    <div style="display:flex;gap:10px;align-items:center;">
-      <div id="liveStatusDot" style="width:8px;height:8px;border-radius:50%;background:#2ecc71;box-shadow:0 0 6px #2ecc71;"></div>
-      <span id="liveStatusLabel" style="font-family:var(--mono);font-size:0.62rem;color:rgba(255,255,255,0.35);letter-spacing:1px;">LIVE</span>
-      <button onclick="refreshAll()" style="padding:8px 18px;background:transparent;color:var(--gold);border:1px solid var(--gold);font-family:var(--mono);font-size:0.68rem;letter-spacing:2px;cursor:pointer;text-transform:uppercase;">↻ REFRESH</button>
+  <!-- TABS -->
+  <div style="display:flex;gap:0;margin-bottom:0;border-bottom:2px solid rgba(201,168,76,0.2);">
+    <button id="tab-deposits" onclick="switchTab('deposits')" style="padding:12px 24px;background:var(--gold);color:var(--navy);font-family:var(--mono);font-size:0.7rem;letter-spacing:2px;border:none;cursor:pointer;font-weight:700;">DEPOSITS</button>
+    <button id="tab-users" onclick="switchTab('users')" style="padding:12px 24px;background:transparent;color:rgba(255,255,255,0.4);font-family:var(--mono);font-size:0.7rem;letter-spacing:2px;border:none;cursor:pointer;">CONNECTED USERS <span id="usersCount" style="background:var(--crimson);color:#fff;font-size:0.55rem;padding:2px 6px;border-radius:10px;margin-left:4px;">0</span></button>
+    <div style="flex:1;display:flex;justify-content:flex-end;align-items:center;gap:10px;padding-right:4px;">
+      <div id="liveStatusDot" style="width:8px;height:8px;border-radius:50%;background:#2ecc71;box-shadow:0 0 8px #2ecc71;animation:pulse 2s infinite;"></div>
+      <span id="liveStatusLabel" style="font-family:var(--mono);font-size:0.6rem;color:rgba(255,255,255,0.35);letter-spacing:1px;">LIVE</span>
+      <button onclick="refreshAll()" style="padding:7px 14px;background:transparent;color:var(--gold);border:1px solid rgba(201,168,76,0.4);font-family:var(--mono);font-size:0.62rem;letter-spacing:2px;cursor:pointer;">↻ REFRESH</button>
     </div>
   </div>
 
-  <!-- Manual import fallback (for file:// local dev where localStorage isn't shared) -->
-  <details style="margin-bottom:18px;border:1px solid rgba(255,255,255,0.08);padding:14px;">
-    <summary style="font-family:var(--mono);font-size:0.65rem;letter-spacing:2px;color:rgba(255,255,255,0.35);cursor:pointer;text-transform:uppercase;">⚙ Manual Import / Debug</summary>
-    <div style="margin-top:12px;">
-      <div style="font-size:0.68rem;color:rgba(255,255,255,0.4);margin-bottom:8px;line-height:1.6;">
-        If running as local files (<code>file://</code>), index.html and admin.html cannot share localStorage.<br>
-        Export deposits from index.html and paste below, OR host both files on the same server/domain.
+  <!-- DEPOSIT TAB -->
+  <div id="panel-deposits">
+    <!-- SYNC PANEL -->
+    <div style="background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.15);padding:14px 16px;margin:16px 0;display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:220px;">
+        <div style="font-family:var(--mono);font-size:0.6rem;letter-spacing:2px;color:var(--gold);margin-bottom:6px;">📋 PASTE DEPOSIT DATA FROM USER</div>
+        <div style="font-size:0.68rem;color:rgba(255,255,255,0.35);margin-bottom:8px;line-height:1.5;">User copies their data from the site and sends it to you. Paste it here to import their deposit.</div>
+        <textarea id="importPasteArea" style="width:100%;height:60px;background:rgba(0,0,0,0.4);border:1px solid rgba(201,168,76,0.25);color:#fff;font-family:var(--mono);font-size:0.62rem;padding:8px;resize:vertical;" placeholder='Paste deposit JSON here…'></textarea>
+        <div style="display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap;">
+          <button onclick="debugImport()" style="padding:8px 18px;background:var(--gold);color:var(--navy);font-family:var(--mono);font-size:0.68rem;letter-spacing:2px;cursor:pointer;font-weight:700;border:none;">IMPORT</button>
+          <button onclick="debugShowRaw()" style="padding:8px 14px;background:transparent;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.4);font-family:var(--mono);font-size:0.6rem;letter-spacing:1px;cursor:pointer;">VIEW RAW</button>
+          <button onclick="debugClearAll()" style="padding:8px 14px;background:transparent;border:1px solid var(--crimson);color:var(--crimson);font-family:var(--mono);font-size:0.6rem;letter-spacing:1px;cursor:pointer;">CLEAR ALL</button>
+          <span id="importStatus" style="font-family:var(--mono);font-size:0.65rem;color:#2ecc71;"></span>
+        </div>
       </div>
-      <div style="display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
-        <button onclick="debugShowRaw()" style="padding:8px 14px;background:transparent;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.5);font-family:var(--mono);font-size:0.62rem;letter-spacing:2px;cursor:pointer;">SHOW RAW DATA</button>
-        <button onclick="debugClearAll()" style="padding:8px 14px;background:transparent;border:1px solid var(--crimson);color:var(--crimson);font-family:var(--mono);font-size:0.62rem;letter-spacing:2px;cursor:pointer;">CLEAR ALL DEPOSITS</button>
-      </div>
-      <textarea id="importPasteArea" style="width:100%;height:80px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);color:#fff;font-family:var(--mono);font-size:0.65rem;padding:8px;resize:vertical;" placeholder='Paste JSON from index.html export here…'></textarea>
-      <button onclick="debugImport()" style="margin-top:8px;padding:8px 18px;background:var(--gold);color:var(--navy);font-family:var(--mono);font-size:0.68rem;letter-spacing:2px;cursor:pointer;font-weight:700;border:none;">IMPORT</button>
-      <span id="importStatus" style="margin-left:10px;font-family:var(--mono);font-size:0.65rem;color:#2ecc71;"></span>
     </div>
-  </details>
 
-  <div class="filters">
-    <button class="filter-btn active" onclick="setFilter('all',this)">ALL</button>
-    <button class="filter-btn" onclick="setFilter('pending',this)">PENDING</button>
-    <button class="filter-btn" onclick="setFilter('verified',this)">VERIFIED</button>
-    <button class="filter-btn" onclick="setFilter('rejected',this)">REJECTED</button>
-    <input class="search-inp" id="searchInp" type="text" placeholder="Search wallet or name…" oninput="renderTable()"/>
-  </div>
+    <div class="filters">
+      <button class="filter-btn active" onclick="setFilter('all',this)">ALL</button>
+      <button class="filter-btn" onclick="setFilter('pending',this)">PENDING</button>
+      <button class="filter-btn" onclick="setFilter('verified',this)">VERIFIED</button>
+      <button class="filter-btn" onclick="setFilter('rejected',this)">REJECTED</button>
+      <input class="search-inp" id="searchInp" type="text" placeholder="Search wallet or name…" oninput="renderTable()"/>
+    </div>
 
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Username</th>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Username</th>
           <th>Wallet</th>
           <th>Submitted</th>
           <th>Status</th>
@@ -324,6 +329,26 @@ td.mono{font-size:0.65rem;color:rgba(255,255,255,0.45);word-break:break-all;max-
     </table>
     <div id="emptyState" class="empty-state" style="display:none;">★ NO DEPOSITS FOUND ★</div>
   </div>
+  </div><!-- end panel-deposits -->
+
+  <!-- CONNECTED USERS TAB -->
+  <div id="panel-users" style="display:none;margin-top:16px;">
+    <div style="font-family:var(--mono);font-size:0.62rem;color:rgba(255,255,255,0.3);letter-spacing:2px;margin-bottom:14px;">Users who connected their wallet on the site. Updates every 3 seconds.</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Wallet</th>
+            <th>Connected At</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="usersTable"></tbody>
+      </table>
+      <div id="usersEmpty" class="empty-state" style="display:none;">★ NO CONNECTED USERS YET ★</div>
+    </div>
+  </div>
 
 </div>
 
@@ -331,6 +356,57 @@ td.mono{font-size:0.65rem;color:rgba(255,255,255,0.45);word-break:break-all;max-
 
 <script>
 /* ── CONSTANTS ── */
+/* ── TABS ── */
+function switchTab(tab){
+  document.getElementById('panel-deposits').style.display = tab==='deposits' ? '' : 'none';
+  document.getElementById('panel-users').style.display = tab==='users' ? '' : 'none';
+  document.getElementById('tab-deposits').style.background = tab==='deposits' ? 'var(--gold)' : 'transparent';
+  document.getElementById('tab-deposits').style.color = tab==='deposits' ? 'var(--navy)' : 'rgba(255,255,255,0.4)';
+  document.getElementById('tab-users').style.background = tab==='users' ? 'var(--gold)' : 'transparent';
+  document.getElementById('tab-users').style.color = tab==='users' ? 'var(--navy)' : 'rgba(255,255,255,0.4)';
+  if(tab==='users') renderUsers();
+}
+
+/* ── CONNECTED USERS ── */
+function getUsers(){
+  try{ return JSON.parse(localStorage.getItem('chump_connected_users')||'[]'); }catch(e){return[];}
+}
+function renderUsers(){
+  const users = getUsers().slice().reverse();
+  const tbody = document.getElementById('usersTable');
+  const empty = document.getElementById('usersEmpty');
+  document.getElementById('usersCount').textContent = users.length;
+  if(!users.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  tbody.innerHTML = users.map(u=>`
+    <tr>
+      <td style="font-weight:700;color:var(--white);">${escHtml(u.username||'—')}</td>
+      <td class="mono">${escHtml(u.wallet)}</td>
+      <td style="font-size:0.65rem;color:rgba(255,255,255,0.35);">${new Date(u.connectedAt).toLocaleString()}</td>
+      <td><span class="status-badge status-verified">CONNECTED</span></td>
+    </tr>`).join('');
+}
+
+/* ── BROADCASTCHANNEL (same-origin real-time) ── */
+let _adminBC = null;
+function initBroadcastChannel(){
+  try {
+    _adminBC = new BroadcastChannel('chump_admin_channel');
+    _adminBC.onmessage = function(e){
+      const { type, username, wallet, amount } = e.data || {};
+      if(type === 'NEW_DEPOSIT'){
+        showToast('🔔 NEW DEPOSIT: ' + (username||wallet.slice(0,10)) + ' · ' + Number(amount).toLocaleString() + ' $CHUMP');
+        refreshAll();
+      } else if(type === 'USER_CONNECTED'){
+        showToast('👤 ' + (username||wallet.slice(0,10)) + ' connected');
+        renderUsers();
+        const cnt = getUsers().length;
+        document.getElementById('usersCount').textContent = cnt;
+      }
+    };
+  } catch(e){ /* BroadcastChannel not supported */ }
+}
+
 const STORE_KEY = 'chump_deposits';
 const ADMIN_PASS = 'chump2024'; // Change this in production
 let currentFilter = 'all';
@@ -391,6 +467,7 @@ function doLogin(){
     document.getElementById('logoutBtn').style.display = 'block';
     refreshAll();
     _lastDepCount = getDeposits().length;
+    initBroadcastChannel();
     fetchChumpPrice();
     setInterval(fetchChumpPrice, 60000);
     setInterval(pollDeposits, 3000); // check for new deposits every 3s
@@ -619,6 +696,8 @@ function saveStakedBalance(id, wallet){
 function refreshAll(){
   updateStats();
   renderTable();
+  const cnt = getUsers().length;
+  if(document.getElementById('usersCount')) document.getElementById('usersCount').textContent = cnt;
 }
 
 /* ── LIVE DEPOSIT WATCHER ── */
