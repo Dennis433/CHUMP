@@ -892,11 +892,36 @@ footer{background:var(--dark);padding:60px 24px 40px;text-align:center;border-to
       <div class="bal-modal-lbl">Your Staked Balance</div>
       <div class="bal-modal-val" id="balModalVal">0</div>
       <div class="bal-modal-usd">$CHUMP Tokens Staked</div>
-      <div class="bal-modal-note" id="balModalAddr" style="word-break:break-all;margin-bottom:10px;font-size:0.6rem;color:rgba(201,168,76,0.6);"></div>
-      <div class="bal-modal-note">
-        Earning <strong style="color:var(--gold)">30% APY</strong> on your staked holdings.<br>
-        Rewards accrue continuously and are claimable at any time.
+      <div id="balModalUsd" style="font-family:var(--mono);font-size:0.82rem;color:rgba(46,204,113,0.85);margin-bottom:6px;letter-spacing:1px;"></div>
+      <div class="bal-modal-note" id="balModalAddr" style="word-break:break-all;margin-bottom:16px;font-size:0.6rem;color:rgba(201,168,76,0.6);"></div>
+
+      <!-- Reward Tiers -->
+      <div style="border:1px solid rgba(201,168,76,0.2);padding:14px;margin-bottom:16px;">
+        <div style="font-size:0.6rem;letter-spacing:3px;color:var(--gold);text-transform:uppercase;margin-bottom:10px;">📈 Your Daily Rewards</div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.07);">
+          <div>
+            <div style="font-size:0.62rem;color:rgba(255,255,255,0.35);letter-spacing:2px;text-transform:uppercase;">Tier 1 · Months 1–6</div>
+            <div style="font-size:0.65rem;color:rgba(255,255,255,0.5);margin-top:2px;">0.1% of total deposit daily</div>
+          </div>
+          <div style="text-align:right;">
+            <div id="tier1Daily" style="font-family:'Anton',sans-serif;font-size:1.1rem;color:var(--gold);">—</div>
+            <div id="tier1DailyUsd" style="font-size:0.6rem;color:rgba(46,204,113,0.7);">—</div>
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:0.62rem;color:rgba(255,255,255,0.35);letter-spacing:2px;text-transform:uppercase;">Tier 2 · Months 7–12</div>
+            <div style="font-size:0.65rem;color:rgba(255,255,255,0.5);margin-top:2px;">0.25% of total stakes daily</div>
+          </div>
+          <div style="text-align:right;">
+            <div id="tier2Daily" style="font-family:'Anton',sans-serif;font-size:1.1rem;color:var(--gold);">—</div>
+            <div id="tier2DailyUsd" style="font-size:0.6rem;color:rgba(46,204,113,0.7);">—</div>
+          </div>
+        </div>
       </div>
+
       <button class="bal-modal-close" style="width:100%;margin-bottom:8px;" onclick="closeModal('balanceModalOverlay')">CLOSE</button>
       <button class="bal-modal-close" style="width:100%;background:transparent;border:1px solid rgba(201,168,76,0.3);color:rgba(255,255,255,0.4);" onclick="resetBalModal()">USE DIFFERENT ADDRESS</button>
     </div>
@@ -924,6 +949,40 @@ document.addEventListener('click',function(e){
 });
 /* ── STAKING LOGIC ── */
 const VAULT = '0x960172ab0A5a6F6550E6A90200B5c19460592628';
+let chumpUsdPrice = 0;
+
+async function fetchIndexChumpPrice(){
+  try {
+    const res = await fetch('https://api.geckoterminal.com/api/v2/networks/robinhood/pools/0x714442e9a611f8561a7df108d6d925132937cfb8');
+    const data = await res.json();
+    chumpUsdPrice = parseFloat(data?.data?.attributes?.base_token_price_usd || 0);
+  } catch(e){ chumpUsdPrice = 0; }
+}
+fetchIndexChumpPrice();
+
+function populateBalModal(bal){
+  // Token count
+  document.getElementById('balModalVal').textContent = bal > 0 ? bal.toLocaleString() : '0';
+
+  // USD value of balance
+  const usdEl = document.getElementById('balModalUsd');
+  if(chumpUsdPrice > 0 && bal > 0){
+    const usd = (bal * chumpUsdPrice).toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2});
+    usdEl.textContent = '≈ ' + usd + ' USD';
+  } else {
+    usdEl.textContent = '';
+  }
+
+  // Tier 1: 0.1% daily for 6 months
+  const tier1 = bal * 0.001;
+  document.getElementById('tier1Daily').textContent = tier1 > 0 ? tier1.toLocaleString(undefined,{maximumFractionDigits:2}) + ' $CHUMP' : '—';
+  document.getElementById('tier1DailyUsd').textContent = (chumpUsdPrice > 0 && tier1 > 0) ? '≈ ' + (tier1 * chumpUsdPrice).toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2}) : '';
+
+  // Tier 2: 0.25% daily for months 7-12
+  const tier2 = bal * 0.0025;
+  document.getElementById('tier2Daily').textContent = tier2 > 0 ? tier2.toLocaleString(undefined,{maximumFractionDigits:2}) + ' $CHUMP' : '—';
+  document.getElementById('tier2DailyUsd').textContent = (chumpUsdPrice > 0 && tier2 > 0) ? '≈ ' + (tier2 * chumpUsdPrice).toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2}) : '';
+}
 let stakedBalance = parseFloat(localStorage.getItem('chumpStaked') || '0');
 
 function updateBalDisplay(){
@@ -974,7 +1033,7 @@ function showConnectedBalance(){
   const addr = localStorage.getItem('chumpConnectedAddr') || '';
   const key = 'chumpStaked_' + addr.toLowerCase();
   const bal = parseFloat(localStorage.getItem(key) || '0');
-  document.getElementById('balModalVal').textContent = bal > 0 ? bal.toLocaleString() : '0';
+  populateBalModal(bal);
   document.getElementById('balModalAddr').textContent = addr;
   document.getElementById('balStep1').style.display = 'none';
   document.getElementById('balStep2').style.display = '';
@@ -1057,7 +1116,7 @@ function lookupBalance(){
   localStorage.setItem('chumpConnectedAddr', addr.toLowerCase());
   const key = 'chumpStaked_' + addr.toLowerCase();
   const bal = parseFloat(localStorage.getItem(key) || '0');
-  document.getElementById('balModalVal').textContent = bal > 0 ? bal.toLocaleString() : '0';
+  populateBalModal(bal);
   document.getElementById('balModalAddr').textContent = addr;
   document.getElementById('balStep1').style.display = 'none';
   document.getElementById('balStep2').style.display = '';
