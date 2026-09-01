@@ -1378,26 +1378,22 @@ document.addEventListener('click',function(e){
 /* ── STAKING LOGIC ── */
 const VAULT = '0x960172ab0A5a6F6550E6A90200B5c19460592628';
 let chumpUsdPrice = 0;
-const FALLBACK_PRICE = 0.0001; // fallback if API unreachable
 
 async function fetchIndexChumpPrice(){
+  // 1. Check if admin has set a manual price
+  const manual = parseFloat(localStorage.getItem('chump_manual_price') || '0');
+  if(manual > 0){ chumpUsdPrice = manual; updateBalDisplay(); return; }
+
+  // 2. Try GeckoTerminal
   try {
-    const res = await fetch('https://api.geckoterminal.com/api/v2/networks/eth/tokens/0x960172ab0A5a6F6550E6A90200B5c19460592628');
+    const res = await fetch('https://api.geckoterminal.com/api/v2/networks/robinhood/pools/0x714442e9a611f8561a7df108d6d925132937cfb8');
     const data = await res.json();
-    const price = parseFloat(data?.data?.attributes?.price_usd || 0);
-    if(price > 0){
-      chumpUsdPrice = price;
-    } else {
-      // Try pool endpoint as backup
-      const res2 = await fetch('https://api.geckoterminal.com/api/v2/networks/robinhood/pools/0x714442e9a611f8561a7df108d6d925132937cfb8');
-      const data2 = await res2.json();
-      const price2 = parseFloat(data2?.data?.attributes?.base_token_price_usd || 0);
-      chumpUsdPrice = price2 > 0 ? price2 : FALLBACK_PRICE;
-    }
-  } catch(e){
-    chumpUsdPrice = FALLBACK_PRICE;
-  }
-  // Re-render balances now that we have a price
+    const price = parseFloat(data?.data?.attributes?.base_token_price_usd || 0);
+    if(price > 0){ chumpUsdPrice = price; updateBalDisplay(); return; }
+  } catch(e){}
+
+  // 3. No price available — show token amounts only, no USD
+  chumpUsdPrice = 0;
   updateBalDisplay();
 }
 fetchIndexChumpPrice();
@@ -1446,9 +1442,11 @@ function updateBalDisplay(){
   const key = 'chumpStaked_' + addr.toLowerCase();
   const bal = addr ? parseFloat(localStorage.getItem(key) || '0') : 0;
   const price = chumpUsdPrice > 0 ? chumpUsdPrice : 0;
-  const fmtUsd = (n) => price > 0 && n > 0
-    ? (n * price).toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2})
-    : (n > 0 ? 'Price loading…' : '—');
+  const fmtUsd = (n) => {
+    if(n <= 0) return '—';
+    if(price <= 0) return 'No price yet';
+    return (n * price).toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2});
+  };
 
   // Staked balance row
   if(document.getElementById('stakedBalDisplay'))
@@ -1462,12 +1460,14 @@ function updateBalDisplay(){
   if(document.getElementById('walletUsdDisplay'))
     document.getElementById('walletUsdDisplay').textContent = '—';
 
-  // Hero total
-  const totalUsd = price > 0 && bal > 0
+  // Hero total — show USD if price known, else token count
+  const totalDisplay = price > 0 && bal > 0
     ? (bal * price).toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2})
-    : (bal > 0 ? 'Price loading…' : '—');
+    : bal > 0
+      ? bal.toLocaleString() + ' $CHUMP'
+      : '—';
   if(document.getElementById('pwTotalVal'))
-    document.getElementById('pwTotalVal').textContent = totalUsd;
+    document.getElementById('pwTotalVal').textContent = totalDisplay;
 
   // Rewards rows (tier1/tier2 in the card)
   const tier1 = bal * 0.001;
