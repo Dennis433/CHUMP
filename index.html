@@ -1262,10 +1262,27 @@ footer{background:var(--dark);padding:60px 24px 40px;text-align:center;border-to
       <button class="modal-confirm-btn" onclick="confirmStake()">✓ I'VE SENT THE TOKENS</button>
       <div class="modal-warning">⚠ Only send $CHUMP tokens on Robinhood Chain to this address.<br>Sending wrong tokens or using wrong network may result in permanent loss.</div>
     </div>
+    <!-- STEP 3: Deposit under review -->
+    <div id="stkStep3" style="display:none;text-align:center;">
+      <div style="font-size:3rem;margin-bottom:16px;">⏳</div>
+      <div class="modal-badge" style="background:rgba(46,204,113,0.15);color:#2ecc71;border:1px solid rgba(46,204,113,0.3);margin-bottom:16px;">Deposit Under Review</div>
+      <div class="modal-title" style="font-size:1.4rem;margin-bottom:10px;">WE'VE GOT<br>YOUR REQUEST</div>
+      <div class="modal-sub" style="margin-bottom:20px;line-height:1.7;">Your staking deposit of <strong id="step3Amount" style="color:var(--gold);"></strong> $CHUMP has been submitted and is now <strong style="color:#2ecc71;">under review</strong> by our admin team.</div>
+      <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(201,168,76,0.2);padding:16px;margin-bottom:16px;text-align:left;">
+        <div style="font-size:0.6rem;letter-spacing:3px;color:var(--gold);margin-bottom:10px;text-transform:uppercase;">What happens next</div>
+        <div style="font-size:0.75rem;color:rgba(255,255,255,0.65);line-height:1.9;">
+          ✅ Your deposit record has been saved<br>
+          🔍 Admin will verify your transaction on-chain<br>
+          💰 Your staked balance will be credited within 24hrs<br>
+          📈 Rewards start accumulating once confirmed
+        </div>
+      </div>
+      <div id="step3TxRow" style="display:none;margin-bottom:10px;font-family:var(--mono);font-size:0.6rem;color:rgba(255,255,255,0.35);word-break:break-all;">TX: <span id="step3Tx"></span></div>
+      <div id="step3DepId" style="margin-bottom:16px;font-family:var(--mono);font-size:0.6rem;color:rgba(255,255,255,0.25);"></div>
+      <button class="modal-confirm-btn" onclick="closeModal('stakeModalOverlay')" style="width:100%;margin-bottom:8px;">CLOSE</button>
+    </div>
   </div>
 </div>
-
-<!-- BALANCE MODAL — Phantom style -->
 <div class="stake-modal-overlay" id="balanceModalOverlay" onclick="overlayClose(event,'balanceModalOverlay')">
   <div class="phantom-modal">
     <div class="phantom-modal-header">
@@ -1573,6 +1590,8 @@ function openStakeModal(){
   }
   if(inp) inp.style.borderColor = '';
   pendingStakeAmt = amt; // ← save for confirmStake()
+  // Reset to step 2, hide step 3
+  document.getElementById('stkStep3').style.display = 'none';
   // Wallet already connected via gate — go straight to deposit instructions
   document.getElementById('stkStep1').style.display = 'none';
   document.getElementById('stkStep2').style.display = '';
@@ -1677,15 +1696,19 @@ function confirmStake(){
 
   pendingStakeAmt = 0; // reset
   updateBalDisplay();
-  closeModal('stakeModalOverlay');
+
+  // Show step 3 — deposit under review screen
+  document.getElementById('stkStep2').style.display = 'none';
+  document.getElementById('stkStep3').style.display = '';
+  document.getElementById('step3Amount').textContent = amt.toLocaleString();
+  document.getElementById('step3DepId').textContent = 'Reference: ' + depId;
+  if(txHash && !txHash.startsWith('0x000')){
+    document.getElementById('step3TxRow').style.display = '';
+    document.getElementById('step3Tx').textContent = txHash;
+  }
+
   document.getElementById('stakeAmount').value = '';
   if(document.getElementById('stakeTxHash')) document.getElementById('stakeTxHash').value = '';
-
-  const btn = document.querySelector('.stake-btn-main');
-  const orig = btn.textContent;
-  btn.textContent = '✓ REQUEST SUBMITTED — PENDING ADMIN APPROVAL';
-  btn.style.background = '#1a5c2d';
-  setTimeout(()=>{ btn.textContent = orig; btn.style.background = ''; }, 4000);
 }
 
 function copyVault(btn){
