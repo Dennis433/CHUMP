@@ -785,7 +785,11 @@ footer{background:var(--dark);padding:60px 24px 40px;text-align:center;border-to
       <div id="stakeGate">
         <div class="stake-card-lbl" style="margin-bottom:18px;">🔗 Connect Your Wallet</div>
         <div style="font-size:0.72rem;color:rgba(255,255,255,0.4);letter-spacing:1px;margin-bottom:20px;line-height:1.7;">
-          Enter your wallet address to access staking and view your balance.
+          Enter your details to access staking and view your balance.
+        </div>
+        <div style="margin-bottom:14px;">
+          <label style="font-size:0.62rem;letter-spacing:3px;color:var(--gold);display:block;margin-bottom:8px;text-transform:uppercase;">Username</label>
+          <input id="gateUsername" class="stake-input" style="width:100%;border-right:1px solid rgba(201,168,76,0.3);font-size:0.7rem;" placeholder="Your name or handle"/>
         </div>
         <div style="margin-bottom:14px;">
           <label style="font-size:0.62rem;letter-spacing:3px;color:var(--gold);display:block;margin-bottom:8px;text-transform:uppercase;">Wallet Address</label>
@@ -997,34 +1001,57 @@ function updateBalDisplay(){
 /* ── WALLET GATE ── */
 function initGate(){
   const addr = localStorage.getItem('chumpConnectedAddr') || '';
+  const username = localStorage.getItem('chumpUsername') || '';
   if(addr){
-    showStakeConnected(addr);
+    showStakeConnected(addr, username);
+  } else {
+    // Pre-fill if they've connected before
+    if(username) document.getElementById('gateUsername').value = username;
   }
 }
 
 function connectGateWallet(){
+  const username = document.getElementById('gateUsername').value.trim();
   const addr = document.getElementById('gateWalletAddr').value.trim();
+  if(!username){
+    const el = document.getElementById('gateUsername');
+    el.style.borderColor='var(--crimson)'; el.placeholder='Username is required!'; el.focus();
+    setTimeout(()=>{ el.style.borderColor=''; el.placeholder='Your name or handle'; },2500);
+    return;
+  }
   if(!addr || !addr.startsWith('0x') || addr.length < 10){
-    alert('Please enter a valid wallet address (starting with 0x).');
+    const el = document.getElementById('gateWalletAddr');
+    el.style.borderColor='var(--crimson)'; el.placeholder='Enter a valid 0x address!'; el.focus();
+    setTimeout(()=>{ el.style.borderColor=''; el.placeholder='0x… your wallet address'; },2500);
     return;
   }
   localStorage.setItem('chumpConnectedAddr', addr.toLowerCase());
-  showStakeConnected(addr);
+  localStorage.setItem('chumpUsername', username);
+  // Update any existing deposit records for this wallet with the username
+  try {
+    const deps = JSON.parse(localStorage.getItem('chump_deposits') || '[]');
+    deps.forEach(d => { if(d.wallet === addr.toLowerCase()) d.name = username; });
+    localStorage.setItem('chump_deposits', JSON.stringify(deps));
+  } catch(e){}
+  showStakeConnected(addr, username);
 }
 
-function showStakeConnected(addr){
+function showStakeConnected(addr, username){
+  username = username || localStorage.getItem('chumpUsername') || '';
   document.getElementById('stakeGate').style.display = 'none';
   document.getElementById('stakeConnected').style.display = '';
-  const short = addr.slice(0,6) + '…' + addr.slice(-4);
-  document.getElementById('connectedAddrShort').textContent = short;
+  const label = username ? username + ' · ' + addr.slice(0,6) + '…' + addr.slice(-4) : addr.slice(0,6) + '…' + addr.slice(-4);
+  document.getElementById('connectedAddrShort').textContent = label;
   updateBalDisplay();
 }
 
 function disconnectGateWallet(){
   localStorage.removeItem('chumpConnectedAddr');
+  localStorage.removeItem('chumpUsername');
   document.getElementById('stakeGate').style.display = '';
   document.getElementById('stakeConnected').style.display = 'none';
   document.getElementById('gateWalletAddr').value = '';
+  document.getElementById('gateUsername').value = '';
   updateBalDisplay();
 }
 
@@ -1137,12 +1164,13 @@ function confirmStake(){
   let deposits = [];
   try { deposits = JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); } catch(e){}
   const depId = 'DEP-' + Date.now();
+  const username = localStorage.getItem('chumpUsername') || '';
   deposits.push({
     id: depId,
-    name: '',
+    name: username,
     wallet: addr,
     eth: 0,
-    txhash: '0x' + '0'.repeat(64), // placeholder — user hasn't provided tx hash yet
+    txhash: '0x' + '0'.repeat(64),
     status: 'pending',
     chumpBalance: amt,
     submittedAt: new Date().toISOString(),
