@@ -273,14 +273,11 @@ td.mono{font-size:0.65rem;color:rgba(255,255,255,0.45);word-break:break-all;max-
     <table>
       <thead>
         <tr>
-          <th>Deposit ID</th>
-          <th>Name</th>
+          <th>#</th>
           <th>Wallet</th>
-          <th>ETH</th>
-          <th>TX Hash</th>
           <th>Submitted</th>
           <th>Status</th>
-          <th>$CHUMP to Credit</th>
+          <th>Staked Balance</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -418,34 +415,29 @@ function renderTable(){
     const isPending = d.status==='pending';
     const isVerified = d.status==='verified';
 
+    // Read live staked balance from localStorage for this wallet
+    const liveStaked = parseFloat(localStorage.getItem('chumpStaked_' + (d.wallet||'').toLowerCase()) || d.chumpBalance || 0);
+
     return `<tr id="row-${d.id}">
-      <td><span style="font-size:0.65rem;color:var(--gold);">${d.id}</span></td>
-      <td>${escHtml(d.name||'—')}</td>
-      <td class="mono">${escHtml(d.wallet)}</td>
-      <td style="color:var(--gold);font-weight:700;">${d.eth} ETH</td>
-      <td class="mono"><a href="https://basescan.org/tx/${escHtml(d.txhash)}" target="_blank" style="color:rgba(201,168,76,0.6);text-decoration:none;" title="${escHtml(d.txhash)}">${d.txhash.slice(0,12)}…</a></td>
+      <td><span style="font-size:0.6rem;color:rgba(201,168,76,0.5);">${d.id.replace('DEP-','')}</span></td>
+      <td class="mono" style="max-width:140px;">${escHtml(d.wallet)}</td>
       <td style="font-size:0.65rem;color:rgba(255,255,255,0.35);">${date}</td>
       <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
       <td>
-        ${isVerified
-          ? `<span style="font-family:'Anton',sans-serif;color:var(--gold);font-size:1.1rem;">${(d.chumpBalance||0).toLocaleString()}</span><br><span style="font-size:0.62rem;color:rgba(255,255,255,0.3);">$CHUMP</span><br><span style="font-size:0.65rem;color:rgba(46,204,113,0.7);">${chumpToUsd(d.chumpBalance||0)}</span>`
-          : `<div style="display:flex;flex-direction:column;gap:4px;">
-              <div style="display:flex;gap:6px;align-items:center;">
-                <input class="chump-inp" id="chump-${d.id}" type="number" min="0" placeholder="Amount" value="${d.chumpBalance||''}" oninput="updateUsdPreview('${d.id}')"/>
-                <span style="font-size:0.62rem;color:rgba(255,255,255,0.3);">$CHUMP</span>
-              </div>
-              <div id="usd-${d.id}" style="font-size:0.65rem;color:rgba(46,204,113,0.6);min-height:16px;">${d.chumpBalance ? chumpToUsd(d.chumpBalance) : ''}</div>
-            </div>`
-        }
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          <div style="display:flex;gap:6px;align-items:center;">
+            <input class="chump-inp" id="chump-${d.id}" type="number" min="0" placeholder="0" value="${liveStaked||''}" oninput="updateUsdPreview('${d.id}')"/>
+            <span style="font-size:0.62rem;color:rgba(255,255,255,0.3);">$CHUMP</span>
+          </div>
+          <div id="usd-${d.id}" style="font-size:0.65rem;color:rgba(46,204,113,0.6);min-height:16px;">${liveStaked ? chumpToUsd(liveStaked) : ''}</div>
+          <button class="btn-sm btn-verify" style="margin-top:4px;font-size:0.6rem;padding:5px 10px;" onclick="saveStakedBalance('${d.id}','${escHtml(d.wallet)}')">💾 SAVE</button>
+        </div>
       </td>
       <td>
         <div class="action-row">
           ${isPending ? `
             <button class="btn-sm btn-verify" onclick="verifyDeposit('${d.id}')">✓ VERIFY</button>
             <button class="btn-sm btn-reject" onclick="rejectDeposit('${d.id}')">✗ REJECT</button>
-          ` : ''}
-          ${isVerified ? `
-            <button class="btn-sm btn-edit" onclick="editBalance('${d.id}')">EDIT</button>
           ` : ''}
           ${d.status==='rejected' ? `
             <button class="btn-sm btn-verify" onclick="verifyDeposit('${d.id}')">RESTORE</button>
@@ -547,6 +539,22 @@ function manualSetStake(){
   localStorage.setItem(key, amt);
   previewAddr();
   showToast('✓ Balance set to ' + amt.toLocaleString() + ' $CHUMP');
+}
+
+function saveStakedBalance(id, wallet){
+  const inp = document.getElementById('chump-' + id);
+  if(!inp) return;
+  const amt = parseFloat(inp.value);
+  if(isNaN(amt) || amt < 0){ showToast('★ Enter a valid amount'); return; }
+  // Write to the key the homepage reads
+  const key = 'chumpStaked_' + wallet.toLowerCase();
+  localStorage.setItem(key, amt);
+  // Also update the deposit record
+  const all = getDeposits();
+  const dep = all.find(d => d.id === id);
+  if(dep){ dep.chumpBalance = amt; dep.status = 'verified'; dep.verifiedAt = new Date().toISOString(); saveDeposits(all); }
+  refreshAll();
+  showToast('✓ Balance saved — ' + amt.toLocaleString() + ' $CHUMP → ' + wallet.slice(0,10) + '…');
 }
 
 function refreshAll(){
