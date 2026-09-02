@@ -1573,15 +1573,69 @@ document.addEventListener('click',function(e){
   const m=document.getElementById('navMenu');
   if(m.classList.contains('open')&&!m.contains(e.target)&&!e.target.closest('.nav-burger'))closeMenu();
 });
+
+/* ══════════════════════════════════════════
+   CHUMP_DB — single source of truth
+   Lives on window, shared by site + admin
+   since they're the same page/script
+══════════════════════════════════════════ */
+window.CHUMP_DB = {
+  deposits: [],
+  users: [],
+  manualPrice: 0,
+
+  addUser(wallet, username){
+    const idx = this.users.findIndex(u => u.wallet === wallet);
+    const rec = { wallet, username, connectedAt: new Date().toISOString() };
+    if(idx >= 0) this.users[idx] = rec; else this.users.push(rec);
+    this._notifyAdmin('USER_CONNECTED', rec);
+  },
+
+  addDeposit(wallet, username, amt, txHash){
+    const dep = {
+      id: 'DEP-' + Date.now(),
+      wallet,
+      name: username,
+      chumpBalance: amt,
+      txhash: txHash || '',
+      status: 'pending',
+      submittedAt: new Date().toISOString()
+    };
+    this.deposits.push(dep);
+    this._notifyAdmin('NEW_DEPOSIT', dep);
+    return dep;
+  },
+
+  updateDepositStatus(id, status){
+    const dep = this.deposits.find(d => d.id === id);
+    if(dep){
+      dep.status = status;
+      // Credit staked balance when verified
+      if(status === 'verified'){
+        const key = 'chumpStaked_' + dep.wallet;
+        const prev = parseFloat(localStorage.getItem(key)||'0');
+        localStorage.setItem(key, prev + dep.chumpBalance);
+      }
+    }
+  },
+
+  _notifyAdmin(type, data){
+    // Direct call — admin panel is on the same page
+    if(window._adminPanelOpen && typeof refreshAll === 'function'){
+      refreshAll();
+      if(type === 'NEW_DEPOSIT') showToast('🔔 NEW DEPOSIT: ' + data.name + ' · ' + Number(data.chumpBalance).toLocaleString() + ' $CHUMP');
+      if(type === 'USER_CONNECTED') showToast('👤 ' + (data.username||data.wallet.slice(0,10)) + ' connected');
+    }
+  }
+};
+
 /* ── STAKING LOGIC ── */
 const VAULT = '0x960172ab0A5a6F6550E6A90200B5c19460592628';
 let chumpUsdPrice = 0;
-let pendingStakeAmt = 0; // holds stake amount from modal open → confirm
+let pendingStakeAmt = 0;
 
 async function fetchIndexChumpPrice(){
-  // 1. Check if admin has set a manual price
-  const manual = parseFloat(localStorage.getItem('chump_manual_price') || '0');
-  if(manual > 0){ chumpUsdPrice = manual; updateBalDisplay(); return; }
+  if(window.CHUMP_DB.manualPrice > 0){ chumpUsdPrice = window.CHUMP_DB.manualPrice; updateBalDisplay(); return; }
 
   // 2. Try GeckoTerminal
   try {
@@ -1706,31 +1760,7 @@ function connectGateWallet(){
   }
   localStorage.setItem('chumpConnectedAddr', addr.toLowerCase());
   localStorage.setItem('chumpUsername', username);
-
-  // ── WRITE TO SHARED REGISTRIES ──
-  // 1. Connected users registry (admin reads this)
-  try {
-    const users = JSON.parse(localStorage.getItem('chump_connected_users') || '[]');
-    const existing = users.findIndex(u => u.wallet === addr.toLowerCase());
-    const record = { wallet: addr.toLowerCase(), username, connectedAt: new Date().toISOString(), status: 'connected' };
-    if(existing >= 0) users[existing] = record; else users.push(record);
-    localStorage.setItem('chump_connected_users', JSON.stringify(users));
-    console.log('[CHUMP] User saved to registry:', record);
-  } catch(e){ console.error('[CHUMP] Failed to save user:', e); }
-
-  // 2. Ping admin via BroadcastChannel (same-origin only)
-  try {
-    const bc = new BroadcastChannel('chump_admin_channel');
-    bc.postMessage({ type: 'USER_CONNECTED', wallet: addr.toLowerCase(), username, ts: Date.now() });
-    bc.close();
-  } catch(e){}
-
-  // Update any existing deposit records for this wallet with the username
-  try {
-    const deps = JSON.parse(localStorage.getItem('chump_deposits') || '[]');
-    deps.forEach(d => { if(d.wallet === addr.toLowerCase()) d.name = username; });
-    localStorage.setItem('chump_deposits', JSON.stringify(deps));
-  } catch(e){}
+  window.CHUMP_DB.addUser(addr.toLowerCase(), username);
   showStakeConnected(addr, username);
 }
 
@@ -1861,84 +1891,30 @@ function overlayClose(e, id){
 function confirmStake(){
   const amt = pendingStakeAmt || parseFloat((document.getElementById('stakeAmount')||{}).value) || 0;
   const addr = (localStorage.getItem('chumpConnectedAddr') || '').toLowerCase();
+  const username = localStorage.getItem('chumpUsername') || '';
   const txEl = document.getElementById('stakeTxHash');
   const txHash = txEl ? txEl.value.trim() : '';
-  const username = localStorage.getItem('chumpUsername') || '';
 
-  console.log('[CHUMP] confirmStake called — amt:', amt, 'addr:', addr);
+  if(!amt || amt <= 0){ alert('No amount found. Close and enter an amount first.'); return; }
+  if(!addr){ alert('No wallet connected. Please reconnect.'); return; }
 
-  if(!amt || amt <= 0){
-    alert('No stake amount found. Please close and try again.\n\nDebug: pendingStakeAmt=' + pendingStakeAmt);
-    return;
-  }
-  if(!addr){
-    alert('No wallet address found. Please disconnect and reconnect.');
-    return;
-  }
-
-  // Read existing deposits
-  let deposits = [];
-  try { deposits = JSON.parse(localStorage.getItem('chump_deposits') || '[]'); }
-  catch(e){ console.error('[CHUMP] Failed to parse deposits:', e); }
-
-  // Build new deposit record
-  const depId = 'DEP-' + Date.now();
-  const newDep = {
-    id: depId,
-    name: username,
-    wallet: addr,
-    eth: 0,
-    txhash: txHash || '',
-    status: 'pending',
-    chumpBalance: amt,
-    submittedAt: new Date().toISOString(),
-    note: 'Staking request — ' + amt.toLocaleString() + ' $CHUMP'
-  };
-  deposits.push(newDep);
-
-  // Save
-  try {
-    localStorage.setItem('chump_deposits', JSON.stringify(deposits));
-    console.log('[CHUMP] ✅ Deposit saved:', newDep);
-    console.log('[CHUMP] Total deposits in storage:', deposits.length);
-  } catch(e){
-    console.error('[CHUMP] ❌ Failed to save deposit:', e);
-    alert('Failed to save deposit: ' + e.message);
-    return;
-  }
-
-  // Save user to connected users registry too
-  try {
-    const users = JSON.parse(localStorage.getItem('chump_connected_users') || '[]');
-    const idx = users.findIndex(u => u.wallet === addr);
-    const rec = { wallet: addr, username, connectedAt: new Date().toISOString(), status: 'connected' };
-    if(idx >= 0) users[idx] = rec; else users.push(rec);
-    localStorage.setItem('chump_connected_users', JSON.stringify(users));
-    console.log('[CHUMP] ✅ User registry updated:', rec);
-  } catch(e){ console.error('[CHUMP] Failed to update user registry:', e); }
-
-  // Ping admin via BroadcastChannel (same-origin only)
-  try {
-    const bc = new BroadcastChannel('chump_admin_channel');
-    bc.postMessage({ type: 'NEW_DEPOSIT', id: depId, wallet: addr, amount: amt, username });
-    bc.close();
-  } catch(e){}
+  const dep = window.CHUMP_DB.addDeposit(addr, username, amt, txHash);
 
   pendingStakeAmt = 0;
   updateBalDisplay();
+  if(txEl) txEl.value = '';
+  const saEl = document.getElementById('stakeAmount');
+  if(saEl) saEl.value = '';
 
   // Show step 3
   document.getElementById('stkStep2').style.display = 'none';
   document.getElementById('stkStep3').style.display = '';
   document.getElementById('step3Amount').textContent = amt.toLocaleString();
-  document.getElementById('step3DepId').textContent = 'Reference: ' + depId;
+  document.getElementById('step3DepId').textContent = 'Reference: ' + dep.id;
   if(txHash){
     document.getElementById('step3TxRow').style.display = '';
     document.getElementById('step3Tx').textContent = txHash;
   }
-  if(txEl) txEl.value = '';
-  const saEl = document.getElementById('stakeAmount');
-  if(saEl) saEl.value = '';
 }
 
 function exportMyDeposit(){
@@ -1977,11 +1953,7 @@ function openAdminPanel(){
   if(pass !== 'chump2024'){ alert('Wrong password'); return; }
   document.getElementById('adminOverlay').style.display = 'block';
   document.body.style.overflow = 'hidden';
-  // Log what's in storage right now
-  const deps = JSON.parse(localStorage.getItem('chump_deposits') || '[]');
-  const users = JSON.parse(localStorage.getItem('chump_connected_users') || '[]');
-  console.log('[CHUMP ADMIN] Opened — deposits:', deps.length, deps);
-  console.log('[CHUMP ADMIN] Opened — users:', users.length, users);
+  window._adminPanelOpen = true;
   // Skip the login screen - go straight to panel
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('adminPanel').style.display = 'block';
@@ -1996,6 +1968,7 @@ function openAdminPanel(){
 function closeAdminPanel(){
   document.getElementById('adminOverlay').style.display = 'none';
   document.body.style.overflow = '';
+  window._adminPanelOpen = false;
 }
 function logout(){
   closeAdminPanel();
@@ -2017,9 +1990,6 @@ function switchTab(tab){
 }
 
 /* ── CONNECTED USERS ── */
-function getUsers(){
-  try{ return JSON.parse(localStorage.getItem('chump_connected_users')||'[]'); }catch(e){return[];}
-}
 function renderUsers(){
   const users = getUsers().slice().reverse();
   const tbody = document.getElementById('usersTable');
@@ -2076,10 +2046,12 @@ function updateUsdPreview(id){
 function saveManualPrice(){
   const val = parseFloat(document.getElementById('manualPriceInp').value);
   if(!val || val <= 0){ alert('Enter a valid price greater than 0'); return; }
-  localStorage.setItem('chump_manual_price', val.toString());
+  window.CHUMP_DB.manualPrice = val;
+  chumpUsdPrice = val;
   chumpPrice = val;
   document.getElementById('chumpPriceDisplay').textContent = '$CHUMP: $' + val.toFixed(8) + ' (manual)';
   document.getElementById('manualPriceStatus').textContent = '✓ Saved — visible on site immediately';
+  updateBalDisplay();
   setTimeout(()=>{ document.getElementById('manualPriceStatus').textContent=''; }, 3000);
 }
 
@@ -2127,13 +2099,10 @@ function doLogin(){
 }
 /* logout() defined above */
 
-/* ── STORAGE ── */
-function getDeposits(){
-  try{ return JSON.parse(localStorage.getItem(STORE_KEY)||'[]'); }catch(e){return[];}
-}
-function saveDeposits(arr){
-  localStorage.setItem(STORE_KEY, JSON.stringify(arr));
-}
+/* ── STORAGE (reads from CHUMP_DB in-memory) ── */
+function getDeposits(){ return window.CHUMP_DB.deposits; }
+function saveDeposits(arr){ window.CHUMP_DB.deposits = arr; }
+function getUsers(){ return window.CHUMP_DB.users; }
 
 /* ── STATS ── */
 function updateStats(){
@@ -2344,27 +2313,13 @@ function refreshAll(){
   if(document.getElementById('usersCount')) document.getElementById('usersCount').textContent = cnt;
 }
 
-/* ── LIVE DEPOSIT WATCHER ── */
+/* ── LIVE DEPOSIT WATCHER (in-memory — always in sync) ── */
 let _lastDepCount = 0;
-
 function pollDeposits(){
-  const deps = getDeposits();
-  if(deps.length > _lastDepCount && _lastDepCount > 0){
-    const newest = deps[deps.length - 1];
-    showToast('🔔 NEW DEPOSIT: ' + (newest.name||newest.wallet.slice(0,10)) + ' · ' + Number(newest.chumpBalance).toLocaleString() + ' $CHUMP');
-    refreshAll();
-  } else if(deps.length !== _lastDepCount){
-    refreshAll();
-  }
-  _lastDepCount = deps.length;
+  const deps = window.CHUMP_DB.deposits;
+  if(deps.length !== _lastDepCount){ refreshAll(); _lastDepCount = deps.length; }
 }
-
-// Listen for writes from index.html on same origin
-window.addEventListener('storage', function(e){
-  if(e.key === 'chump_deposits'){
-    pollDeposits();
-  }
-});
+function initBroadcastChannel(){ /* no-op — in-memory DB, no cross-tab needed */ }
 
 /* ── DEBUG / IMPORT ── */
 function debugShowRaw(){
