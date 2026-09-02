@@ -1715,7 +1715,8 @@ function connectGateWallet(){
     const record = { wallet: addr.toLowerCase(), username, connectedAt: new Date().toISOString(), status: 'connected' };
     if(existing >= 0) users[existing] = record; else users.push(record);
     localStorage.setItem('chump_connected_users', JSON.stringify(users));
-  } catch(e){}
+    console.log('[CHUMP] User saved to registry:', record);
+  } catch(e){ console.error('[CHUMP] Failed to save user:', e); }
 
   // 2. Ping admin via BroadcastChannel (same-origin only)
   try {
@@ -1871,7 +1872,7 @@ function confirmStake(){
     return;
   }
 
-  const STORE_KEY = 'chump_deposits';
+  const DEP_KEY = 'chump_deposits';
   let deposits = [];
   try { deposits = JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); } catch(e){}
   const depId = 'DEP-' + Date.now();
@@ -1887,7 +1888,9 @@ function confirmStake(){
     submittedAt: new Date().toISOString(),
     note: 'Staking request — ' + amt.toLocaleString() + ' $CHUMP'
   });
-  localStorage.setItem(STORE_KEY, JSON.stringify(deposits));
+  localStorage.setItem(DEP_KEY, JSON.stringify(deposits));
+  console.log('[CHUMP] Deposit saved:', deposits[deposits.length-1]);
+  console.log('[CHUMP] All deposits now:', deposits.length);
 
   // Ping admin in real-time
   try {
@@ -1964,12 +1967,12 @@ function closeAdminPanel(){
   document.getElementById('adminOverlay').style.display = 'none';
   document.body.style.overflow = '';
 }
-// Override logout to close overlay instead
 function logout(){
   closeAdminPanel();
   document.getElementById('loginScreen').style.display = 'flex';
   document.getElementById('adminPanel').style.display = 'none';
   document.getElementById('logoutBtn').style.display = 'none';
+  try{ document.getElementById('admin-pass').value=''; document.getElementById('login-err').style.display='none'; }catch(e){}
 }
 /* ── CONSTANTS ── */
 /* ── TABS ── */
@@ -2092,13 +2095,7 @@ function doLogin(){
     document.getElementById('admin-pass').value = '';
   }
 }
-function logout(){
-  document.getElementById('loginScreen').style.display = 'flex';
-  document.getElementById('adminPanel').style.display = 'none';
-  document.getElementById('logoutBtn').style.display = 'none';
-  document.getElementById('admin-pass').value = '';
-  document.getElementById('login-err').style.display = 'none';
-}
+/* logout() defined above */
 
 /* ── STORAGE ── */
 function getDeposits(){
@@ -2141,6 +2138,7 @@ function setFilter(f, btn){
 /* ── TABLE ── */
 function renderTable(){
   const all = getDeposits();
+  console.log('[CHUMP ADMIN] renderTable — deposits found:', all.length, all);
   const q = (document.getElementById('searchInp').value||'').toLowerCase();
   let rows = all.filter(d=>{
     const matchFilter = currentFilter==='all' || d.status===currentFilter;
@@ -2340,10 +2338,12 @@ window.addEventListener('storage', function(e){
 
 /* ── DEBUG / IMPORT ── */
 function debugShowRaw(){
-  const raw = localStorage.getItem('chump_deposits') || '[]';
+  const deps = localStorage.getItem('chump_deposits') || '[]';
+  const users = localStorage.getItem('chump_connected_users') || '[]';
   const area = document.getElementById('importPasteArea');
-  area.value = raw;
-  alert('Found ' + JSON.parse(raw).length + ' deposit(s) in this admin localStorage. See textarea below.');
+  area.value = '=== DEPOSITS (' + JSON.parse(deps).length + ') ===\n' + JSON.stringify(JSON.parse(deps), null, 2)
+    + '\n\n=== USERS (' + JSON.parse(users).length + ') ===\n' + JSON.stringify(JSON.parse(users), null, 2);
+  alert('Deposits: ' + JSON.parse(deps).length + '\nUsers: ' + JSON.parse(users).length + '\n\nFull data shown in textarea below.');
 }
 function debugClearAll(){
   if(!confirm('Delete ALL deposit records? This cannot be undone.')) return;
