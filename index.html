@@ -320,9 +320,16 @@ nav{
   width:100%;padding:20px;background:var(--gold);color:var(--navy);
   font-family:var(--mono);font-weight:700;font-size:0.88rem;letter-spacing:4px;
   border:none;cursor:pointer;text-transform:uppercase;transition:background 0.2s;
-  margin-bottom:16px;
+  margin-bottom:10px;
 }
 .stake-btn-main:hover{background:var(--gold2);}
+.unstake-btn-main{
+  width:100%;padding:14px;background:transparent;color:rgba(255,255,255,0.55);
+  font-family:var(--mono);font-weight:700;font-size:0.78rem;letter-spacing:3px;
+  border:1px solid rgba(255,255,255,0.18);cursor:pointer;text-transform:uppercase;
+  transition:all 0.2s;margin-bottom:16px;
+}
+.unstake-btn-main:hover{border-color:var(--crimson);color:var(--crimson);}
 
 .stake-balance-bar{
   display:flex;align-items:center;justify-content:space-between;
@@ -1294,6 +1301,7 @@ td.mono{font-size:0.65rem;color:rgba(255,255,255,0.45);word-break:break-all;max-
         </div>
 
         <button class="stake-btn-main" onclick="openStakeModal()">STAKE $CHUMP NOW</button>
+        <button class="unstake-btn-main" onclick="openUnstakeModal()">↓ UNSTAKE $CHUMP</button>
 
         <!-- WALLET CARD — Phantom style matching screenshot -->
         <div class="pw-card">
@@ -1460,6 +1468,57 @@ td.mono{font-size:0.65rem;color:rgba(255,255,255,0.45);word-break:break-all;max-
     </div>
   </div>
 </div>
+<!-- UNSTAKE MODAL -->
+<div class="stake-modal-overlay" id="unstakeModalOverlay" onclick="overlayClose(event,'unstakeModalOverlay')">
+  <div class="stake-modal">
+    <button class="modal-close" onclick="closeModal('unstakeModalOverlay')">✕</button>
+
+    <!-- Step 1: Enter amount -->
+    <div id="unstakeStep1">
+      <div class="modal-badge" style="background:rgba(231,76,60,0.15);color:var(--crimson);border:1px solid rgba(231,76,60,0.3);">Unstake Request</div>
+      <div class="modal-title">UNSTAKE<br>$CHUMP</div>
+      <div class="modal-sub">Enter how much you want to withdraw from the staking vault.</div>
+      <hr class="modal-hr"/>
+      <div style="margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <label style="font-size:0.62rem;letter-spacing:3px;color:var(--gold);text-transform:uppercase;">Amount to Unstake</label>
+          <button onclick="unstakeMax()" style="font-family:var(--mono);font-size:0.6rem;color:var(--gold);background:none;border:1px solid rgba(201,168,76,0.3);padding:3px 10px;cursor:pointer;letter-spacing:2px;">MAX</button>
+        </div>
+        <input id="unstakeAmount" class="stake-input" type="number" min="0" style="width:100%;font-size:0.82rem;" placeholder="Enter $CHUMP amount…"/>
+        <div id="unstakeAvail" style="font-size:0.65rem;color:rgba(255,255,255,0.35);margin-top:6px;font-family:var(--mono);">Staked: — $CHUMP</div>
+      </div>
+      <div style="margin-bottom:18px;">
+        <label style="font-size:0.62rem;letter-spacing:3px;color:var(--gold);display:block;margin-bottom:8px;text-transform:uppercase;">Reason (optional)</label>
+        <input id="unstakeReason" class="stake-input" style="width:100%;font-size:0.72rem;" placeholder="e.g. Need liquidity, taking profits…"/>
+      </div>
+      <div style="background:rgba(231,76,60,0.08);border:1px solid rgba(231,76,60,0.2);padding:12px;margin-bottom:18px;font-size:0.72rem;color:rgba(255,255,255,0.55);line-height:1.6;">
+        ⚠ Unstaking stops your rewards on the withdrawn amount. Admin will process your request within 24hrs and return tokens to your wallet.
+      </div>
+      <button class="stake-btn-main" style="background:var(--crimson);margin-bottom:8px;" onclick="submitUnstake()">SUBMIT UNSTAKE REQUEST</button>
+      <button onclick="closeModal('unstakeModalOverlay')" style="width:100%;padding:12px;background:transparent;border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.4);font-family:var(--mono);font-size:0.72rem;letter-spacing:2px;cursor:pointer;">CANCEL</button>
+    </div>
+
+    <!-- Step 2: Confirmation -->
+    <div id="unstakeStep2" style="display:none;text-align:center;">
+      <div style="font-size:3rem;margin-bottom:16px;">📤</div>
+      <div class="modal-badge" style="background:rgba(231,76,60,0.15);color:var(--crimson);border:1px solid rgba(231,76,60,0.3);margin-bottom:16px;">Request Submitted</div>
+      <div class="modal-title" style="font-size:1.4rem;margin-bottom:10px;">UNSTAKE<br>UNDER REVIEW</div>
+      <div class="modal-sub" style="margin-bottom:20px;line-height:1.7;">Your request to unstake <strong id="unstakeStep2Amt" style="color:var(--gold);"></strong> $CHUMP has been sent to admin.</div>
+      <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(201,168,76,0.2);padding:16px;margin-bottom:20px;text-align:left;">
+        <div style="font-size:0.6rem;letter-spacing:3px;color:var(--gold);margin-bottom:10px;text-transform:uppercase;">What happens next</div>
+        <div style="font-size:0.75rem;color:rgba(255,255,255,0.65);line-height:1.9;">
+          📋 Admin reviews your unstake request<br>
+          💸 Tokens returned to your wallet within 24hrs<br>
+          📉 Rewards stop on the withdrawn amount<br>
+          ✅ You'll receive a confirmation once processed
+        </div>
+      </div>
+      <div id="unstakeRefId" style="font-family:var(--mono);font-size:0.6rem;color:rgba(255,255,255,0.25);margin-bottom:16px;"></div>
+      <button class="stake-btn-main" onclick="closeModal('unstakeModalOverlay')" style="background:var(--crimson);">CLOSE</button>
+    </div>
+  </div>
+</div>
+
 <div class="stake-modal-overlay" id="balanceModalOverlay" onclick="overlayClose(event,'balanceModalOverlay')">
   <div class="phantom-modal">
     <div class="phantom-modal-header">
@@ -1591,6 +1650,22 @@ window.CHUMP_DB = {
     this._notifyAdmin('USER_CONNECTED', rec);
   },
 
+  addUnstake(wallet, username, amt, reason){
+    const req = {
+      id: 'UNSTK-' + Date.now(),
+      wallet,
+      name: username,
+      chumpBalance: amt,
+      reason: reason || '',
+      status: 'pending',
+      type: 'unstake',
+      submittedAt: new Date().toISOString()
+    };
+    this.deposits.push(req);
+    this._notifyAdmin('NEW_UNSTAKE', req);
+    return req;
+  },
+
   addDeposit(wallet, username, amt, txHash){
     const dep = {
       id: 'DEP-' + Date.now(),
@@ -1624,6 +1699,7 @@ window.CHUMP_DB = {
     if(window._adminPanelOpen && typeof refreshAll === 'function'){
       refreshAll();
       if(type === 'NEW_DEPOSIT') showToast('🔔 NEW DEPOSIT: ' + data.name + ' · ' + Number(data.chumpBalance).toLocaleString() + ' $CHUMP');
+      if(type === 'NEW_UNSTAKE') showToast('📤 UNSTAKE REQUEST: ' + data.name + ' · ' + Number(data.chumpBalance).toLocaleString() + ' $CHUMP');
       if(type === 'USER_CONNECTED') showToast('👤 ' + (data.username||data.wallet.slice(0,10)) + ' connected');
     }
   }
@@ -1886,6 +1962,43 @@ function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 
 function overlayClose(e, id){
   if(e.target.id === id) closeModal(id);
+}
+
+/* ── UNSTAKE FLOW ── */
+function openUnstakeModal(){
+  const addr = (localStorage.getItem('chumpConnectedAddr')||'').toLowerCase();
+  if(!addr){ alert('Please connect your wallet first.'); return; }
+  const staked = parseFloat(localStorage.getItem('chumpStaked_'+addr)||'0');
+  document.getElementById('unstakeAvail').textContent = 'Staked: ' + staked.toLocaleString() + ' $CHUMP';
+  document.getElementById('unstakeAmount').value = '';
+  document.getElementById('unstakeReason').value = '';
+  document.getElementById('unstakeStep1').style.display = '';
+  document.getElementById('unstakeStep2').style.display = 'none';
+  document.getElementById('unstakeModalOverlay').classList.add('open');
+}
+
+function unstakeMax(){
+  const addr = (localStorage.getItem('chumpConnectedAddr')||'').toLowerCase();
+  const staked = parseFloat(localStorage.getItem('chumpStaked_'+addr)||'0');
+  document.getElementById('unstakeAmount').value = staked;
+}
+
+function submitUnstake(){
+  const addr = (localStorage.getItem('chumpConnectedAddr')||'').toLowerCase();
+  const username = localStorage.getItem('chumpUsername')||'';
+  const amt = parseFloat(document.getElementById('unstakeAmount').value)||0;
+  const reason = document.getElementById('unstakeReason').value.trim();
+  const staked = parseFloat(localStorage.getItem('chumpStaked_'+addr)||'0');
+
+  if(!amt || amt <= 0){ alert('Enter an amount to unstake.'); return; }
+  if(amt > staked){ alert('Amount exceeds your staked balance of ' + staked.toLocaleString() + ' $CHUMP.'); return; }
+
+  const req = window.CHUMP_DB.addUnstake(addr, username, amt, reason);
+
+  document.getElementById('unstakeStep1').style.display = 'none';
+  document.getElementById('unstakeStep2').style.display = '';
+  document.getElementById('unstakeStep2Amt').textContent = amt.toLocaleString();
+  document.getElementById('unstakeRefId').textContent = 'Reference: ' + req.id;
 }
 
 function confirmStake(){
@@ -2165,28 +2278,32 @@ function renderTable(){
 
     // Read live staked balance from localStorage for this wallet
     const liveStaked = parseFloat(localStorage.getItem('chumpStaked_' + (d.wallet||'').toLowerCase()) || d.chumpBalance || 0);
+    const isUnstake = d.type === 'unstake';
+    const typeLabel = isUnstake
+      ? `<span style="font-size:0.58rem;background:rgba(231,76,60,0.2);color:#e74c3c;border:1px solid rgba(231,76,60,0.3);padding:2px 7px;border-radius:3px;letter-spacing:1px;">UNSTAKE</span>`
+      : `<span style="font-size:0.58rem;background:rgba(201,168,76,0.15);color:var(--gold);border:1px solid rgba(201,168,76,0.25);padding:2px 7px;border-radius:3px;letter-spacing:1px;">STAKE</span>`;
 
     return `<tr id="row-${d.id}">
-      <td><span style="font-size:0.6rem;color:rgba(201,168,76,0.5);">${d.id.replace('DEP-','')}</span></td>
+      <td><span style="font-size:0.6rem;color:rgba(201,168,76,0.5);">${d.id.replace('DEP-','').replace('UNSTK-','')}</span><br>${typeLabel}</td>
       <td style="font-weight:700;color:var(--white);">${escHtml(d.name||'—')}</td>
       <td class="mono" style="max-width:140px;">${escHtml(d.wallet)}</td>
-      <td style="font-size:0.65rem;color:rgba(255,255,255,0.35);">${date}</td>
+      <td style="font-size:0.65rem;color:rgba(255,255,255,0.35);">${date}${d.reason ? `<br><span style="color:rgba(255,255,255,0.25);font-style:italic;">${escHtml(d.reason)}</span>` : ''}</td>
       <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
       <td>
-        <div style="display:flex;flex-direction:column;gap:4px;">
-          <div style="display:flex;gap:6px;align-items:center;">
-            <input class="chump-inp" id="chump-${d.id}" type="number" min="0" placeholder="0" value="${liveStaked||''}" oninput="updateUsdPreview('${d.id}')"/>
-            <span style="font-size:0.62rem;color:rgba(255,255,255,0.3);">$CHUMP</span>
-          </div>
-          <div id="usd-${d.id}" style="font-size:0.65rem;color:rgba(46,204,113,0.6);min-height:16px;">${liveStaked ? chumpToUsd(liveStaked) : ''}</div>
-          <button class="btn-sm btn-verify" style="margin-top:4px;font-size:0.6rem;padding:5px 10px;" onclick="saveStakedBalance('${d.id}','${escHtml(d.wallet)}')">💾 SAVE</button>
+        <div style="font-family:var(--mono);font-size:0.88rem;font-weight:700;color:${isUnstake?'#e74c3c':'var(--gold)'};">
+          ${isUnstake ? '−' : '+'}${Number(d.chumpBalance).toLocaleString()} $CHUMP
         </div>
+        <div style="font-size:0.65rem;color:rgba(255,255,255,0.3);margin-top:2px;">${chumpToUsd(d.chumpBalance)}</div>
       </td>
       <td>
         <div class="action-row">
-          ${isPending ? `
-            <button class="btn-sm btn-verify" onclick="verifyDeposit('${d.id}')">✓ VERIFY</button>
+          ${isPending && !isUnstake ? `
+            <button class="btn-sm btn-verify" onclick="verifyDeposit('${d.id}')">✓ APPROVE</button>
             <button class="btn-sm btn-reject" onclick="rejectDeposit('${d.id}')">✗ REJECT</button>
+          ` : ''}
+          ${isPending && isUnstake ? `
+            <button class="btn-sm btn-reject" onclick="approveUnstake('${d.id}')">✓ PROCESS</button>
+            <button class="btn-sm btn-verify" style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.4);" onclick="rejectDeposit('${d.id}')">✗ DENY</button>
           ` : ''}
           ${d.status==='rejected' ? `
             <button class="btn-sm btn-verify" onclick="verifyDeposit('${d.id}')">RESTORE</button>
@@ -2202,6 +2319,23 @@ function escHtml(str){
 }
 
 /* ── ACTIONS ── */
+function approveUnstake(id){
+  const all = getDeposits();
+  const dep = all.find(d => d.id === id);
+  if(!dep) return;
+  if(!confirm('Process unstake of ' + Number(dep.chumpBalance).toLocaleString() + ' $CHUMP for ' + (dep.name||dep.wallet) + '?')) return;
+  dep.status = 'verified';
+  dep.processedAt = new Date().toISOString();
+  // Deduct from staked balance
+  const key = 'chumpStaked_' + dep.wallet.toLowerCase();
+  const prev = parseFloat(localStorage.getItem(key)||'0');
+  localStorage.setItem(key, Math.max(0, prev - dep.chumpBalance));
+  saveDeposits(all);
+  updateBalDisplay();
+  refreshAll();
+  showToast('✓ Unstake processed — ' + Number(dep.chumpBalance).toLocaleString() + ' $CHUMP deducted from ' + dep.wallet.slice(0,10) + '…');
+}
+
 function verifyDeposit(id){
   const all = getDeposits();
   const dep = all.find(d=>d.id===id);
